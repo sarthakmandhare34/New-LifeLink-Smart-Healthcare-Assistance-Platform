@@ -1,0 +1,52 @@
+const FEMALE_EXCLUSIVE_PATTERNS = [
+  /\bpregnan(?:cy|t)\b/i,
+  /\b(?:missed|late|heavy|irregular|delayed|skipped|painful|no|first)?\s*periods?\b/i,
+  /\bperiods?\s*(?:missed|late|delay|pain|cramp|flow|cycle|spotting)?\b/i,
+  /\bmenstrua(?:tion|l)?\b/i,
+  /\bamenorrhea\b/i,
+  /\bovar(?:y|ies|ian)\b/i,
+  /\buter(?:us|ine)\b/i,
+  /\bcervi(?:x|cal)\b/i,
+  /\bmiscarriage|abortion\b/i,
+  /\bmenopaus(?:e|al)\b/i,
+  /\bvagin(?:a|al)\b/i,
+  /\bvulv(?:a|al)\b/i,
+  /\bfallopian\b/i,
+  /\bendometriosis\b/i,
+  /\bpcos\b|polycystic(?:\s+ovary)?/i,
+  /\bbreastfeeding|lactating\b/i,
+  /\bmorning sickness\b/i,
+  /\bgynecolog/i,
+];
+
+const MALE_EXCLUSIVE_PATTERNS = [
+  /\bprostat(?:e|ic)\b/i,
+  /\btestic(?:le|les|ular)\b/i,
+  /\bpen(?:is|ile)\b/i,
+  /\bscrot(?:um|al)\b/i,
+  /\bforeskin\b/i,
+  /\bcircumci(?:sion|sed)\b/i,
+  /\bsemen|seminal\b/i,
+  /\bepididymis\b/i,
+  /\berectile dysfunction\b/i,
+  /\berection\b/i
+];
+
+export function checkBiologicalImpossibility(symptoms: string, gender: string): string | null {
+  if (!symptoms || !gender) return null;
+  const text = symptoms.trim();
+  
+  if (gender.toLowerCase() === 'male' || gender.toLowerCase() === 'man') {
+    if (FEMALE_EXCLUSIVE_PATTERNS.some(p => p.test(text))) {
+      return `The symptoms described contain female-specific biological references which are inconsistent with the selected '${gender}' gender. Please correct your inputs.`;
+    }
+  }
+
+  if (gender.toLowerCase() === 'female' || gender.toLowerCase() === 'woman') {
+    if (MALE_EXCLUSIVE_PATTERNS.some(p => p.test(text))) {
+      return `The symptoms described contain male-specific biological references which are inconsistent with the selected '${gender}' gender. Please correct your inputs.`;
+    }
+  }
+
+  return null;
+}

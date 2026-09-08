@@ -1,0 +1,1 @@
+ALTER TABLE `patientAssessments` MODIFY COLUMN `urgency` enum('LOW','MODERATE','EMERGENCY','ERROR') NOT NULL;

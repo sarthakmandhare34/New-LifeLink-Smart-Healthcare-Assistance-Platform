@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1788030756994,
+      "tag": "0000_bouncy_king_bedlam",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1788083566943,
+      "tag": "0001_dear_blur",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1788636531215,
+      "tag": "0002_parched_the_santerians",
+      "breakpoints": true
+    }
+  ]
+}
