@@ -5,8 +5,8 @@ import { createSyntheticDoctorCredential, getSyntheticDoctorCredentialByEmail, g
 import { getSessionCookieOptions } from "../_core/cookies";
 import { ENV } from "../_core/env";
 import { authSession } from "./authUtil";
-import { doctorProcedure, publicProcedure, protectedProcedure, router } from "../_core/trpc";
-import { COOKIE_NAME, ONE_YEAR_MS } from "../../shared/const";
+import { doctorProcedure, publicProcedure, router } from "../_core/trpc";
+import { DOCTOR_COOKIE_NAME, ONE_YEAR_MS } from "../../shared/const";
 import { hashPatientPassword, verifyPatientPassword } from "./nativePatientAuth";
 import { doctorDisplayName, doctorIdFromSyntheticOpenId, getSyntheticDoctor, syntheticDoctorOpenId } from "../syntheticDoctor";
 import { mockDoctorDirectory } from "../discovery/mockDoctorDirectory";
@@ -61,7 +61,7 @@ async function establishDoctorSession(
   const session = doctorSessionView(openId);
   if (!session) throw new TRPCError({ code: "FORBIDDEN", message: "Synthetic doctor session is not valid." });
   const token = await authSession.createSessionToken(openId, { name: session.displayName, expiresInMs: ONE_YEAR_MS });
-  ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+  ctx.res.cookie(DOCTOR_COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
   return session;
 }
 
@@ -175,5 +175,15 @@ export const doctorAuthRouter = router({
     if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Controlled clinician credentials are unavailable." });
     return { success: true } as const;
   }),
-  me: protectedProcedure.query(({ ctx }) => doctorSessionView(ctx.user.openId)),
+  logout: publicProcedure.mutation(({ ctx }) => {
+    const cookieOptions = getSessionCookieOptions(ctx.req);
+    const { maxAge: _, ...clearOptions } = cookieOptions as any;
+    ctx.res.clearCookie(DOCTOR_COOKIE_NAME, clearOptions);
+    return { success: true } as const;
+  }),
+  me: publicProcedure.query(({ ctx }) => {
+    const doctor = ctx.doctorUser || (ctx.user?.role === "doctor" ? ctx.user : null);
+    if (!doctor) return null;
+    return doctorSessionView(doctor.openId);
+  }),
 });

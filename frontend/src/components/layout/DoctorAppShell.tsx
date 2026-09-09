@@ -28,10 +28,10 @@ export const DoctorAppShell = () => {
   const { theme, toggleTheme } = useTheme();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const session = trpc.doctorAuth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
-  const logoutMutation = trpc.auth.logout.useMutation({
+  const logoutMutation = trpc.doctorAuth.logout.useMutation({
     onSuccess: async () => {
       utils.doctorAuth.me.setData(undefined, null);
-      await utils.invalidate();
+      await utils.doctorWorkspace.invalidate();
       navigate("/doctor/login", { replace: true });
     },
   });

@@ -88,9 +88,12 @@ class AuthSessionManager {
     }
   }
 
-  async authenticateRequest(req: Request): Promise<AuthenticatedUser> {
+  async authenticateRequest(
+    req: Request,
+    cookieName: string = COOKIE_NAME
+  ): Promise<AuthenticatedUser> {
     const cookies = this.parseCookies(req.headers.cookie);
-    let sessionToken = cookies.get(COOKIE_NAME);
+    let sessionToken = cookies.get(cookieName);
 
     if (!sessionToken) {
       const authHeader = req.headers.authorization;

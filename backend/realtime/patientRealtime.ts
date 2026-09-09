@@ -3,6 +3,7 @@ import { getDoctorEventsSince, getPatientEventsSince } from "../db";
 import { type RealtimeDoctorEvent, type RealtimePatientEvent, subscribeToDoctorEvents, subscribeToPatientEvents } from "./eventBus";
 import { authSession } from "../auth/authUtil";
 import { doctorIdFromSyntheticOpenId } from "../syntheticDoctor";
+import { COOKIE_NAME, DOCTOR_COOKIE_NAME } from "../../shared/const";
 
 const HEARTBEAT_MS = 25_000;
 
@@ -54,7 +55,7 @@ export function registerPatientRealtimeRoute(app: Express) {
   app.get("/api/patient-events", async (req: Request, res: Response) => {
     let user;
     try {
-      user = await authSession.authenticateRequest(req);
+      user = await authSession.authenticateRequest(req, COOKIE_NAME);
     } catch {
       res.status(401).json({ error: "Authentication is required." });
       return;
@@ -93,7 +94,7 @@ export function registerDoctorRealtimeRoute(app: Express) {
   app.get("/api/doctor-events", async (req: Request, res: Response) => {
     let user;
     try {
-      user = await authSession.authenticateRequest(req);
+      user = await authSession.authenticateRequest(req, DOCTOR_COOKIE_NAME);
     } catch {
       res.status(401).json({ error: "Authentication is required." });
       return;
