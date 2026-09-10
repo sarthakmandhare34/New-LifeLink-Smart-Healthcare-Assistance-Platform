@@ -3,8 +3,6 @@ import { getDb, createNativePatient, createSyntheticDoctorCredential } from "../
 import { mockDoctorDirectory } from "../backend/discovery/mockDoctorDirectory";
 import { hashPatientPassword } from "../backend/auth/nativePatientAuth";
 
-import { sql } from "drizzle-orm";
-
 async function resetAndSeedDatabase() {
   console.log("Connecting to database...");
   const db = await getDb();
@@ -13,21 +11,21 @@ async function resetAndSeedDatabase() {
   }
 
   console.log("Clearing all existing users and associated tables...");
-  await db.execute(sql.raw("SET FOREIGN_KEY_CHECKS = 0;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientPrescriptionItems;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientPrescriptions;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientAppointments;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientMedicines;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientEmergencyContacts;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientProfiles;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientAssessments;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientEvents;"));
-  await db.execute(sql.raw("TRUNCATE TABLE doctorEvents;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientProviderIdentities;"));
-  await db.execute(sql.raw("TRUNCATE TABLE patientCredentials;"));
-  await db.execute(sql.raw("TRUNCATE TABLE syntheticDoctorCredentials;"));
-  await db.execute(sql.raw("TRUNCATE TABLE users;"));
-  await db.execute(sql.raw("SET FOREIGN_KEY_CHECKS = 1;"));
+  await db.execute("SET FOREIGN_KEY_CHECKS = 0;");
+  await db.execute("TRUNCATE TABLE patientPrescriptionItems;");
+  await db.execute("TRUNCATE TABLE patientPrescriptions;");
+  await db.execute("TRUNCATE TABLE patientAppointments;");
+  await db.execute("TRUNCATE TABLE patientMedicines;");
+  await db.execute("TRUNCATE TABLE patientEmergencyContacts;");
+  await db.execute("TRUNCATE TABLE patientProfiles;");
+  await db.execute("TRUNCATE TABLE patientAssessments;");
+  await db.execute("TRUNCATE TABLE patientEvents;");
+  await db.execute("TRUNCATE TABLE doctorEvents;");
+  await db.execute("TRUNCATE TABLE patientProviderIdentities;");
+  await db.execute("TRUNCATE TABLE patientCredentials;");
+  await db.execute("TRUNCATE TABLE syntheticDoctorCredentials;");
+  await db.execute("TRUNCATE TABLE users;");
+  await db.execute("SET FOREIGN_KEY_CHECKS = 1;");
   console.log("✅ All existing users and related data deleted successfully.");
 
   // 1. Create Patient Accounts with email, username, and password
