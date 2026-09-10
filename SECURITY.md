@@ -6,7 +6,8 @@ We provide security updates and patches for the following versions of the LifeLi
 
 | Version | Supported          | Status |
 | :--- | :---: | :--- |
-| **1.0.x** | :white_check_mark: | Active production release |
+| **1.1.x** | :white_check_mark: | Active production release |
+| **1.0.x** | :white_check_mark: | Supported maintenance release |
 | **< 1.0** | :x:                | End of life (development milestones) |
 
 ---
@@ -68,3 +69,5 @@ To prevent medical hallucinations, dangerous clinical advice, or AI prompt injec
 ### 3.7. Password Hashing & Secret Management
 - Passwords for native patient accounts and synthetic doctor credentials are salted and hashed using standard bcrypt algorithms.
 - All secrets (`JWT_SECRET`, `GEMINI_API_KEY`, `DATABASE_URL`) are read strictly from environment variables and must never be committed to version control.
+- In production (`NODE_ENV=production`), the application strictly throws an error if `JWT_SECRET` is omitted or empty, preventing fallback secret keys.
+- Database provisioning scripts (`scripts/seed-doctors.ts`) enforce strict `NODE_ENV=production` guards, preventing destructive table truncations in production database environments.
