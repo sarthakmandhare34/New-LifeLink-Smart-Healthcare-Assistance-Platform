@@ -4,6 +4,10 @@ import { mockDoctorDirectory } from "../backend/discovery/mockDoctorDirectory";
 import { hashPatientPassword } from "../backend/auth/nativePatientAuth";
 
 async function resetAndSeedDatabase() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DANGER: Database reset script (seed-doctors.ts) is strictly disabled in production (NODE_ENV=production).");
+  }
+
   console.log("Connecting to database...");
   const db = await getDb();
   if (!db) {

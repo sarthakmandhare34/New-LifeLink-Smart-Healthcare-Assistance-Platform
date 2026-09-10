@@ -38,7 +38,7 @@ function isPortAvailable(port: number): Promise<boolean> {
 /**
  * Searches for an available port starting from the given startPort.
  */
-async function findAvailablePort(startPort: number = 3000): Promise<number> {
+async function findAvailablePort(startPort: number = 4000): Promise<number> {
   for (let port = startPort; port < startPort + 5; port++) {
     if (await isPortAvailable(port)) {
       return port;
@@ -94,7 +94,7 @@ async function startServer() {
     });
   }
 
-  const preferredPort = parseInt(process.env.PORT || "3000");
+  const preferredPort = parseInt(process.env.PORT || "4000", 10);
   const port = await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {

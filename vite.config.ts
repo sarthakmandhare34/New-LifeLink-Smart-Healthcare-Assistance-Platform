@@ -5,6 +5,10 @@ import { defineConfig } from "vite";
 
 const plugins = [react(), tailwindcss()];
 
+// Read the dynamic API port injected by scripts/dev.mjs, or fallback to PORT/4000
+const API_PORT = process.env.VITE_API_PORT || process.env.PORT || "4000";
+const target = `http://localhost:${API_PORT}`;
+
 export default defineConfig({
   plugins,
   resolve: {
@@ -31,12 +35,12 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: "http://localhost:4000",
+        target: target,
         changeOrigin: true,
         ws: true,
       },
       "/uploads": {
-        target: "http://localhost:4000",
+        target: target,
         changeOrigin: true,
       },
     },

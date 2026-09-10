@@ -110,7 +110,13 @@ export const Appointments = () => {
                   </div>
 
                   <div style={{ marginTop: 'var(--spacing-4)', textAlign: 'right' }}>
-                    <Button variant="outline" size="sm" onClick={() => requestCancel(appointment.id)} disabled={cancellingId === appointment.id}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => requestCancel(appointment.id)}
+                      disabled={cancellingId === appointment.id}
+                      aria-label={`Cancel appointment with ${doctor?.name || 'specialist'} on ${new Date(appointment.scheduledAt).toLocaleDateString()}`}
+                    >
                       {cancellingId === appointment.id ? 'Cancelling...' : 'Cancel Appointment'}
                     </Button>
                   </div>
@@ -167,7 +173,7 @@ export const Appointments = () => {
       <Popup isOpen={appointmentToCancel !== null} onClose={() => setAppointmentToCancel(null)} title="Cancel Appointment" maxWidth="400px">
         <div className="flex-col gap-4">
           <p>Are you sure you want to cancel this appointment request?</p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', flexWrap: 'wrap' }}>
             <Button variant="outline" onClick={() => setAppointmentToCancel(null)}>Keep Appointment</Button>
             <Button variant="danger" onClick={confirmCancel}>Cancel Appointment</Button>
           </div>

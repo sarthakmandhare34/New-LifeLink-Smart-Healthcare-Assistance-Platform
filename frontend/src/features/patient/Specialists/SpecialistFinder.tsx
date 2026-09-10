@@ -253,7 +253,13 @@ export const SpecialistFinder = () => {
                       {requestedDocId === doctor.id ? (
                         <Button variant="secondary" className="w-full" disabled>Requested!</Button>
                       ) : (
-                        <Button variant="primary" className="w-full" onClick={(event) => handleRequest(doctor.id, event)} disabled={processingId === doctor.id}>
+                        <Button
+                          variant="primary"
+                          className="w-full"
+                          onClick={(event) => handleRequest(doctor.id, event)}
+                          disabled={processingId === doctor.id}
+                          aria-label={`Request appointment with ${doctor.name}`}
+                        >
                           {processingId === doctor.id ? 'Requesting Appointment…' : 'Request Appointment'}
                         </Button>
                       )}

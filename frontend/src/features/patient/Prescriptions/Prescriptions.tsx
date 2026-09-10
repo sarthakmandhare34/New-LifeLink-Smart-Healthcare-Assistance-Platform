@@ -283,6 +283,7 @@ export const Prescriptions = () => {
                     setSelectedRxId(prescription.id);
                   }}
                   style={{ borderRadius: '10px', background: '#00C4CC', borderColor: '#00C4CC', color: '#FFF', fontWeight: 700 }}
+                  aria-label={`View details for prescription from ${prescription.doctor?.name || 'specialist'} on ${new Date(prescription.issuedAt).toLocaleDateString()}`}
                 >
                   View Details
                 </Button>

@@ -77,7 +77,7 @@ export const Popup: React.FC<PopupProps> = ({
       onClick={handleBackdropClick}
       aria-labelledby={titleId}
     >
-      <div style={{ padding: 'var(--spacing-5)' }} onClick={e => e.stopPropagation()}>
+      <div className="popup-inner" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4" style={{ paddingBottom: 'var(--spacing-3)', borderBottom: '1px solid var(--color-border)' }}>
           <h2 id={titleId} style={{ margin: 0, fontSize: 'var(--text-h2)' }}>{title}</h2>
           <button 

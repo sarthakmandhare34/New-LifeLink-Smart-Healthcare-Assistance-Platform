@@ -220,6 +220,7 @@ export const DoctorDashboard = () => {
               </div>
               <button
                 onClick={() => navigate('/doctor/appointments')}
+                aria-label="View all upcoming appointments"
                 style={{ background: 'none', border: 'none', color: '#00C4CC', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 View All <ArrowRight size={14} />
@@ -308,6 +309,7 @@ export const DoctorDashboard = () => {
               </div>
               <button
                 onClick={() => navigate('/doctor/assessments')}
+                aria-label="View all recent assessments"
                 style={{ background: 'none', border: 'none', color: '#00C4CC', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 View All <ArrowRight size={14} />
@@ -401,6 +403,7 @@ export const DoctorDashboard = () => {
               </div>
               <button
                 onClick={() => navigate('/doctor/patients')}
+                aria-label="View all accessible patients"
                 style={{ background: 'none', border: 'none', color: '#00C4CC', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 View All <ArrowRight size={14} />

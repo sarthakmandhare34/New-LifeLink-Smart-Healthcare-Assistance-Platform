@@ -192,11 +192,23 @@ export const MedicineCabinet = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-4 pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-                <Button variant="secondary" size="sm" onClick={() => handleOpenEdit(med)} disabled={processingId === med.id}>
+              <div className="flex gap-2 mt-4 pt-2" style={{ borderTop: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleOpenEdit(med)}
+                  disabled={processingId === med.id}
+                  aria-label={`Edit ${med.name}`}
+                >
                   <Edit2 size={14} /> Edit
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => requestRemove(med.id)} disabled={processingId === med.id}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => requestRemove(med.id)}
+                  disabled={processingId === med.id}
+                  aria-label={`Remove ${med.name} from cabinet`}
+                >
                   <Trash2 size={14} /> {processingId === med.id ? 'Removing...' : 'Remove'}
                 </Button>
               </div>
@@ -214,7 +226,7 @@ export const MedicineCabinet = () => {
       <Popup isOpen={medicineToRemove !== null} onClose={() => setMedicineToRemove(null)} title="Remove Medicine" maxWidth="400px">
         <div className="flex-col gap-4">
           <p>Are you sure you want to remove this medication from your cabinet?</p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px' }}>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px', flexWrap: 'wrap' }}>
             <Button variant="outline" onClick={() => setMedicineToRemove(null)}>Cancel</Button>
             <Button variant="danger" onClick={confirmRemove}>Remove</Button>
           </div>

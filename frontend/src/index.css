@@ -1993,6 +1993,25 @@ dialog.popup {
 
 .responsive-list-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: var(--spacing-4);
 }
+
+.popup-inner {
+  padding: var(--spacing-5);
+}
+
+@media (max-width: 480px) {
+  .popup-inner {
+    padding: var(--spacing-3);
+  }
+}
+
+@media (max-width: 360px) {
+  .app-content,
+  .doctor-content {
+    padding-left: var(--spacing-2);
+    padding-right: var(--spacing-2);
+  }
+}
+

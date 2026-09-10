@@ -83,7 +83,7 @@ describe("deterministic emergency assessment safety", () => {
             urgency: "ERROR",
             specialty: "Error",
             reason: "The input is not related to health symptoms.",
-            guidance: "The Input is not related towards the Sysmpotms please try again later"
+            guidance: "The Input is not related towards the symptoms please try again later"
           })}] }
         }]
       })
@@ -99,7 +99,7 @@ describe("deterministic emergency assessment safety", () => {
       });
       expect(result.urgency).toBe("ERROR");
       expect(result.specialty).toBe("Error");
-      expect(result.guidance).toBe("The Input is not related towards the Sysmpotms please try again later");
+      expect(result.guidance).toBe("The Input is not related towards the symptoms please try again later");
     } finally {
       global.fetch = originalFetch;
       delete process.env.GEMINI_API_KEY;

@@ -325,9 +325,11 @@ export const HealthPassport = () => {
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '90px' }}>
             {isEditing ? (
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label htmlFor="health-passport-blood-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '0.82rem', color: '#2D9D9C', fontWeight: 600 }}>Select Blood Group</span>
                 <select
+                  id="health-passport-blood-group"
+                  aria-label="Select Blood Group"
                   value={bloodGroup}
                   onChange={(e) => setBloodGroup(e.target.value)}
                   style={{
@@ -379,9 +381,10 @@ export const HealthPassport = () => {
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             {isEditing ? (
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label htmlFor="health-passport-allergies" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '0.82rem', color: '#2D9D9C', fontWeight: 600 }}>Allergies (comma-separated)</span>
                 <Input
+                  id="health-passport-allergies"
                   type="text"
                   value={allergies}
                   onChange={(e) => setAllergies(e.target.value)}
@@ -432,9 +435,10 @@ export const HealthPassport = () => {
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             {isEditing ? (
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label htmlFor="health-passport-conditions" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '0.82rem', color: '#2D9D9C', fontWeight: 600 }}>Conditions (comma-separated)</span>
                 <Input
+                  id="health-passport-conditions"
                   type="text"
                   value={conditions}
                   onChange={(e) => setConditions(e.target.value)}
@@ -663,11 +667,12 @@ export const HealthPassport = () => {
             </div>
           )}
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label htmlFor="emergency-contact-name" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#102B2D' }}>
               Contact Name <span style={{ color: 'var(--color-semantic-emergency)' }}>*</span>
             </span>
             <Input
+              id="emergency-contact-name"
               type="text"
               required
               value={contactDraft.name}
@@ -677,11 +682,12 @@ export const HealthPassport = () => {
             />
           </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label htmlFor="emergency-contact-relationship" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#102B2D' }}>
               Relationship <span style={{ color: 'var(--color-semantic-emergency)' }}>*</span>
             </span>
             <Input
+              id="emergency-contact-relationship"
               type="text"
               required
               value={contactDraft.relationship}
@@ -691,11 +697,12 @@ export const HealthPassport = () => {
             />
           </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label htmlFor="emergency-contact-phone" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#102B2D' }}>
               Phone Number <span style={{ color: 'var(--color-semantic-emergency)' }}>*</span>
             </span>
             <Input
+              id="emergency-contact-phone"
               type="tel"
               required
               value={contactDraft.phone}
@@ -705,7 +712,7 @@ export const HealthPassport = () => {
             />
           </label>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px', flexWrap: 'wrap' }}>
             <Button
               type="button"
               variant="outline"
@@ -759,7 +766,7 @@ export const HealthPassport = () => {
             Are you sure you want to remove <strong>{contactToDelete?.name}</strong> ({contactToDelete?.relationship}) from your emergency contacts?
           </p>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px', flexWrap: 'wrap' }}>
             <Button
               type="button"
               variant="outline"

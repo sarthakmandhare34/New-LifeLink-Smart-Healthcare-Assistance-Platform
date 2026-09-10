@@ -170,11 +170,12 @@ export const AIAssessment = () => {
           )}
 
           {/* Symptoms Input */}
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label htmlFor="ai-assessment-symptoms" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#102B2D' }}>
               Describe your symptoms <span style={{ color: 'var(--color-semantic-emergency)' }}>*</span>
             </span>
             <textarea 
+              id="ai-assessment-symptoms"
               value={symptoms} 
               onChange={(event) => setSymptoms(event.target.value)} 
               placeholder="Describe what you are feeling, when it started, and what makes it better or worse." 
@@ -196,12 +197,13 @@ export const AIAssessment = () => {
           </label>
           
           {/* Grid: Age & Gender */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '16px' }}>
+            <label htmlFor="ai-assessment-age" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#102B2D' }}>
                 Age (0 – 120) <span style={{ color: 'var(--color-semantic-emergency)' }}>*</span>
               </span>
               <Input 
+                id="ai-assessment-age"
                 type="number"
                 min={0}
                 max={120}
@@ -213,11 +215,13 @@ export const AIAssessment = () => {
               />
             </label>
             
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label htmlFor="ai-assessment-gender" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#102B2D' }}>
                 Biological Gender <span style={{ color: 'var(--color-semantic-emergency)' }}>*</span>
               </span>
               <select 
+                id="ai-assessment-gender"
+                aria-label="Biological Gender"
                 value={gender} 
                 onChange={(event) => setGender(event.target.value)} 
                 required 
@@ -242,12 +246,13 @@ export const AIAssessment = () => {
           </div>
           
           {/* Duration & Existing Conditions */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '16px' }}>
+            <label htmlFor="ai-assessment-duration" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#102B2D' }}>
                 Symptom Duration <span style={{ color: 'var(--color-semantic-emergency)' }}>*</span>
               </span>
               <Input 
+                id="ai-assessment-duration"
                 type="text" 
                 value={duration} 
                 onChange={(event) => setDuration(event.target.value)} 
@@ -257,11 +262,12 @@ export const AIAssessment = () => {
               />
             </label>
             
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label htmlFor="ai-assessment-conditions" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#102B2D' }}>
                 Existing Conditions <span style={{ color: '#2D9D9C', fontWeight: 400 }}>(optional)</span>
               </span>
               <Input 
+                id="ai-assessment-conditions"
                 type="text" 
                 value={conditions} 
                 onChange={(event) => setConditions(event.target.value)} 
@@ -361,6 +367,7 @@ export const AIAssessment = () => {
                       setSelectedHistoryItem(item);
                       setIsResultModalOpen(true);
                     }}
+                    aria-label={`View triage details for assessment from ${new Date(item.createdAt).toLocaleDateString()}`}
                     style={{
                       fontSize: '0.82rem',
                       fontWeight: 700,

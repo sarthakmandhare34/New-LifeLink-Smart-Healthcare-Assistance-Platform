@@ -108,7 +108,12 @@ export const Emergency = () => {
                     <strong style={{ color: 'var(--color-primary)' }}>{contact.name}</strong>
                     <p className="caption" style={{ margin: '2px 0 0' }}>{contact.relationship}</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setContactForSms({ name: contact.name, phone: contact.phone })}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setContactForSms({ name: contact.name, phone: contact.phone })}
+                    aria-label={`Review SOS message for ${contact.name}`}
+                  >
                     <MessageCircle size={16} /> Review SOS message
                   </Button>
                 </div>
@@ -121,9 +126,9 @@ export const Emergency = () => {
       <Popup isOpen={isAmbulanceConfirmOpen} onClose={() => setIsAmbulanceConfirmOpen(false)} title="Open emergency dialer" closeOnBackdrop={false}>
         <div className="flex-col gap-4">
           <p style={{ margin: 0 }}>This will open your device dialer with <strong>{AMBULANCE_EMERGENCY_NUMBER}</strong>. LifeLink will not place the call for you; you decide whether to continue in your phone app.</p>
-          <div className="flex gap-3">
-            <Button variant="outline" style={{ flex: 1 }} onClick={() => setIsAmbulanceConfirmOpen(false)}>Cancel</Button>
-            <Button variant="danger" style={{ flex: 1 }} onClick={openAmbulanceDialer}><Phone size={16} /> Open dialer</Button>
+          <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
+            <Button variant="outline" style={{ flex: 1, minWidth: '120px' }} onClick={() => setIsAmbulanceConfirmOpen(false)}>Cancel</Button>
+            <Button variant="danger" style={{ flex: 1, minWidth: '120px' }} onClick={openAmbulanceDialer}><Phone size={16} /> Open dialer</Button>
           </div>
         </div>
       </Popup>
@@ -131,9 +136,9 @@ export const Emergency = () => {
       <Popup isOpen={Boolean(contactForSms)} onClose={() => setContactForSms(null)} title={SMS_CONFIRMATION_TITLE} closeOnBackdrop={false}>
         <div className="flex-col gap-4">
           <p style={{ margin: 0 }}>This will open an SMS draft addressed to <strong>{contactForSms?.name}</strong>. LifeLink will not send it; you can review, edit, or cancel it in your messaging app.</p>
-          <div className="flex gap-3">
-            <Button variant="outline" style={{ flex: 1 }} onClick={() => setContactForSms(null)}>Cancel</Button>
-            <Button variant="primary" style={{ flex: 1 }} onClick={openSmsComposer}><MessageCircle size={16} /> Open SMS draft</Button>
+          <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
+            <Button variant="outline" style={{ flex: 1, minWidth: '120px' }} onClick={() => setContactForSms(null)}>Cancel</Button>
+            <Button variant="primary" style={{ flex: 1, minWidth: '120px' }} onClick={openSmsComposer}><MessageCircle size={16} /> Open SMS draft</Button>
           </div>
         </div>
       </Popup>

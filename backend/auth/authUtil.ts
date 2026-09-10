@@ -15,6 +15,9 @@ export type SessionPayload = {
 
 class AuthSessionManager {
   private getSessionSecret() {
+    if (ENV.isProduction && !ENV.cookieSecret) {
+      throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable must be configured in production mode.");
+    }
     const secret = ENV.cookieSecret || "local-development-secret-key-change-in-production";
     return new TextEncoder().encode(secret);
   }

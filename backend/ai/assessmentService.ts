@@ -90,7 +90,7 @@ CRITICAL CLINICAL RULES FOR GENDER AND AGE:
   * urgency: "ERROR"
   * specialty: "Error"
   * reason: "The input is not related to health symptoms."
-  * guidance: "The Input is not related towards the Sysmpotms please try again later"
+  * guidance: "The Input is not related towards the symptoms please try again later"
 - Do NOT answer general knowledge questions, write code, or engage in non-medical chat.`;
 
 export function hasEmergencyPattern(symptoms: string) {
