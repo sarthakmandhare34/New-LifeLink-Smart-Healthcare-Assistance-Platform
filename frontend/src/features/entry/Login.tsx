@@ -23,7 +23,10 @@ export const PatientLogin = () => {
   const [searchParams] = useSearchParams();
   const trpcUtils = trpc.useUtils();
   const loginMutation = trpc.patientAuth.login.useMutation();
-  const providerQuery = trpc.auth.providers.useQuery();
+  const providerQuery = trpc.auth.providers.useQuery(undefined, {
+    retry: 3,
+    staleTime: 10000,
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,8 +39,8 @@ export const PatientLogin = () => {
       const errorMap: Record<string, string> = {
         invalid_provider_state: "The Google authorization session expired. Please try again.",
         provider_sign_in_cancelled: "Google sign-in was cancelled.",
-        registration_required: "No patient account found with this Google email. Please create an account first.",
-        account_exists: "An account with this email already exists. Please sign in.",
+        registration_required: "No patient account found with this Google email. Please sign up first using 'Sign up with Google'.",
+        account_exists: "An account with this email already exists. Please sign in below.",
         provider_sign_in_failed: "Google authentication could not be completed. Please try again.",
       };
       setError(errorMap[authErrorParam] || "Google sign-in failed. Please try again.");
@@ -56,6 +59,11 @@ export const PatientLogin = () => {
       setError(err instanceof Error ? err.message : 'Unable to sign in. Please try again.');
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleClick = () => {
+    const startUrl = providerQuery.data?.googleAuthorizationStartUrl || '/api/auth/google';
+    window.location.assign(startUrl);
   };
 
   return (
@@ -175,16 +183,8 @@ export const PatientLogin = () => {
                   type="button"
                   variant="outline"
                   className="btn w-full"
-                  disabled={providerQuery.isLoading}
-                  onClick={() => {
-                    const startUrl = providerQuery.data?.googleAuthorizationStartUrl;
-                    if (startUrl) {
-                      window.location.assign(startUrl);
-                    } else {
-                      setError("Google Sign-In is not configured yet. Add GOOGLE_OAUTH_CLIENT_ID and AUTH_PUBLIC_BASE_URL to your .env file.");
-                    }
-                  }}
-                  title={providerQuery.data?.googleAuthorizationStartUrl ? "Sign in with Google" : "Google OAuth"}
+                  onClick={handleGoogleClick}
+                  title="Continue with Google"
                   style={{ borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.85)', color: '#102B2D', cursor: 'pointer', fontWeight: 600 }}
                 >
                   <GoogleIcon /> Continue with Google

@@ -23,7 +23,10 @@ export const PatientRegistration = () => {
   const [searchParams] = useSearchParams();
   const trpcUtils = trpc.useUtils();
   const registerMutation = trpc.patientAuth.register.useMutation();
-  const providerQuery = trpc.auth.providers.useQuery();
+  const providerQuery = trpc.auth.providers.useQuery(undefined, {
+    retry: 3,
+    staleTime: 10000,
+  });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,6 +64,11 @@ export const PatientRegistration = () => {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleClick = () => {
+    const startUrl = providerQuery.data?.googleRegistrationStartUrl ?? providerQuery.data?.googleAuthorizationStartUrl ?? '/api/auth/google?intent=register';
+    window.location.assign(startUrl);
   };
 
   return (
@@ -204,16 +212,8 @@ export const PatientRegistration = () => {
                   type="button"
                   variant="outline"
                   className="btn w-full"
-                  disabled={providerQuery.isLoading}
-                  onClick={() => {
-                    const startUrl = providerQuery.data?.googleRegistrationStartUrl ?? providerQuery.data?.googleAuthorizationStartUrl;
-                    if (startUrl) {
-                      window.location.assign(startUrl);
-                    } else {
-                      setError("Google Sign-Up is not configured yet. Add GOOGLE_OAUTH_CLIENT_ID and AUTH_PUBLIC_BASE_URL to your .env file.");
-                    }
-                  }}
-                  title={providerQuery.data?.googleRegistrationStartUrl ? "Sign up with Google" : "Google OAuth"}
+                  onClick={handleGoogleClick}
+                  title="Sign up with Google"
                   style={{ borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.85)', color: '#102B2D', cursor: 'pointer', fontWeight: 600 }}
                 >
                   <GoogleIcon /> Sign up with Google
