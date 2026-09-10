@@ -69,7 +69,7 @@ LifeLink-Smart-Healthcare-Assistance-Platform/
 └── 🛠️ RUNTIME & SETUP SCRIPTS
     ├── scripts/init-db.ts                 <-- [RUN] Idempotently provisions 'lifelink' database in MySQL
     ├── scripts/seed-doctors.ts            <-- [RUN] Resets test patients & seeds 12 Mumbai specialist accounts
-    └── scripts/dev.mjs                    <-- [RUN] Unified single-port dev server runner (Express + Vite on 3000)
+    └── scripts/dev.mjs                    <-- [RUN] Development runtime orchestrator (Vite on 5173, Express on 4000 with fallbacks)
 ```
 
 ---
