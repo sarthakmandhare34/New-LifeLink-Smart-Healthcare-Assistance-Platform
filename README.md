@@ -225,9 +225,9 @@ LifeLink-Smart-Healthcare-Assistance-Platform/
 │   └── types.ts                                   # Shared data schemas & type contracts
 │
 ├── 📁 scripts/                                    # Operational runners & database utilities
-│   ├── dev.mjs                                    # Unified single-port dev runner (Express + Vite on 3000)
+│   ├── dev.mjs                                    # Development runtime orchestrator (Vite on 5173, Express on 4000 with fallbacks)
 │   ├── init-db.ts                                 # Idempotent MySQL database provisioning script
-│   ├── seed-doctors.ts                            # Provisions 12 Mumbai specialist accounts
+│   ├── seed-doctors.ts                            # Provisions 12 Mumbai specialist accounts (production truncation protected)
 │   └── clear-users.ts                             # Development database reset helper
 │
 ├── 📁 implementation-reports/                     # Engineering specifications & verification audits
@@ -236,7 +236,10 @@ LifeLink-Smart-Healthcare-Assistance-Platform/
 │   ├── 03-ai-assessment-and-safety.md             # 5-layer AI triage engine & safety nets
 │   ├── 04-doctor-portal-and-consultation.md       # Clinician workspace & cryptographic prescriptions
 │   ├── 05-local-development-and-ports.md          # Local development guide, ports, console hotkeys
-│   └── batch-17-responsive-accessibility-ui-audit.md # WCAG 2.1 AA responsive & accessibility audit
+│   ├── dev-runtime-port-orchestration.md          # Multi-process runtime & port fallback specification
+│   ├── post-remediation-browser-verification.md   # Post-remediation browser verification report
+│   ├── batch-17-responsive-accessibility-ui.md   # Batch 17 WCAG 2.1 AA responsive & accessibility implementation
+│   └── batch-18-production-readiness.md           # Batch 18 production readiness & deployment safety audit
 │
 ├── 📄 CONTRIBUTORS.md                             # Maintainer credits & contribution guidelines
 ├── 📄 SYSTEM_DIAGRAMS.md                          # Mermaid ER, Class, Sequence, and State diagrams
@@ -294,7 +297,10 @@ npx tsx scripts/seed-doctors.ts
 ```bash
 npm run dev
 ```
-Then open **[http://localhost:3000](http://localhost:3000)** in your browser. That's it!
+Then open **[http://localhost:5173](http://localhost:5173)** in your browser! 
+- **Frontend (Vite)**: Runs on preferred port `5173` (fallback range: `5173–5177`)
+- **Backend (Express + tRPC)**: Runs on preferred port `4000` (fallback range: `4000–4004`)
+- Vite automatically proxies `/api/trpc` and `/uploads` requests directly to the backend.
 
 ---
 
