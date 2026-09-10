@@ -4,6 +4,22 @@ All notable changes to the LifeLink Smart Healthcare Assistance Platform will be
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-11
+
+### Added & Refined
+- **Development Runtime & Port Orchestration**:
+  - Re-architected development runtime into two independent managed processes: Vite Frontend on preferred port `5173` (fallback range: `5173–5177`) and Express + tRPC Backend on preferred port `4000` (fallback range: `4000–4004`), orchestrated seamlessly via `scripts/dev.mjs`.
+  - Configured Vite development proxy to seamlessly route `/api/trpc` and `/uploads` requests directly to the active Express backend port.
+  - Decoupled Drizzle Studio from `npm run dev` to maintain a lean runtime (retained via explicit `npm run db:studio` command).
+- **Batch 17 — Responsive Design & WCAG 2.1 AA Accessibility Implementation**:
+  - Fixed responsive CSS layout grid constraints (`.responsive-list-grid` converted to `minmax(min(100%, 280px), 1fr)`) ensuring card wrapping across 320px mobile to 1920px widescreen viewports.
+  - Added explicit HTML form element `<label>` associations and `aria-label` screen reader attributes across all Patient and Doctor workspace controls.
+  - Enhanced visual accessibility for modal dialogs and integrated active countdown feedback into 5-minute patient auto-logout handlers.
+- **Batch 18 — Production Readiness & Deployment Safety Audit**:
+  - Implemented strict `NODE_ENV=production` truncation protection in `scripts/seed-doctors.ts` to prevent accidental database wiping in production deployments.
+  - Enforced mandatory non-empty `JWT_SECRET` verification in `backend/auth/authUtil.ts`, blocking fallback keys in production environments.
+  - Verified 100% test suite regression baseline (185 passed, 1 skipped, 0 failed across 33 test files), 0 TypeScript compilation errors, and clean production build.
+
 ---
 
 ## [1.0.0] - 2026-09-10
