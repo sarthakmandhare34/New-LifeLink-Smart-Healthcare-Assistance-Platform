@@ -10,6 +10,8 @@ import { LifeLinkLogo } from "../brand/LifeLinkLogo";
 import { trpc } from "../../lib/trpc";
 import { useDoctorRealtime } from "../../hooks/useDoctorRealtime";
 import { useTheme } from "../../context/ThemeContext";
+import { registerPatientInactivityTimer } from "../../hooks/patientInactivity";
+import { toast } from "sonner";
 
 const navItems = [
   { path: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -52,6 +54,24 @@ export const DoctorAppShell = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMobileOpen]);
+
+  useEffect(() => {
+    if (!session.data || typeof window === 'undefined') return;
+
+    let hasExpired = false;
+    return registerPatientInactivityTimer(window, () => {
+      if (hasExpired) return;
+      hasExpired = true;
+      void (async () => {
+        try {
+          await logoutMutation.mutateAsync();
+        } finally {
+          toast.error('You have been signed out after five minutes of inactivity.');
+          navigate('/doctor/login', { replace: true });
+        }
+      })();
+    });
+  }, [session.data, logoutMutation, navigate]);
 
   if (session.isLoading) return (
     <main className="doctor-content">
