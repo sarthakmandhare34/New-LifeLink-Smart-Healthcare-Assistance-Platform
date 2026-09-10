@@ -1,28 +1,98 @@
-# 03. AI Assessment & Clinical Safety Controls
+# 03. AI Health Assessment & Multi-Layer Safety Architecture
 
-## AI Assessment Architecture
-The AI Assessment service (`backend/assessmentService.ts`) provides structured triage guidance based on patient symptoms, age, gender, and duration.
+## 1. Engine Overview (`backend/ai/assessmentService.ts`)
 
-### 1. Model Resolution & Fallback Cascade
-The system implements a resilient multi-model cascade to eliminate single points of failure:
-1. `gemini-3.5-flash` (Primary high-performance triage model)
-2. `gemini-3.7-flash` (Secondary fallback)
-3. `gemini-flash-latest` (Tertiary fallback)
-4. **Deterministic Safe Offline Fallback**: If network or quota limitations occur, the system provides structured, safe default triage advice rather than crashing.
+LifeLink's AI Health Assessment service provides structured, non-diagnostic clinical triage and specialist routing. It maps user-reported symptoms, age, gender, duration, and existing medical conditions to recommended medical specialties and urgency categories (`LOW`, `MODERATE`, `EMERGENCY`, `ERROR`).
 
-### 2. Safety & Emergency Pattern Detection
-Before LLM execution, input text is evaluated against deterministic emergency regex patterns:
-* Chest pain / pressure / crushing sensations
-* Shortness of breath / severe breathing difficulties
-* Severe bleeding / coughing blood / hematemesis
-* Unconsciousness / seizures / fainting
-* Stroke symptoms (facial droop, slurred speech, one-sided weakness)
-* Poisoning / anaphylaxis / severe allergic reactions
-* Suicidal ideation or self-harm
+---
 
-### 3. Immediate Deterministic Override
-If an emergency pattern is matched:
-* Urgency is hardcoded to `EMERGENCY`.
-* Specialty is set to `Emergency Care`.
-* Direct guidance is issued advising the user to contact local emergency services (`112` / ambulance) immediately.
-* Structured JSON validation enforces schema consistency across all responses.
+## 2. Multi-Layer Safety Architecture
+
+```text
+User Input: { symptoms, age, gender, conditions, duration }
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 1: Biological Consistency Validation (0ms)           │
+│  Deterministic checks (e.g. Male Pregnancy / Gyn Block)     │
+└────────────────────────────┬────────────────────────────────┘
+                             │ Passes Validation
+┌────────────────────────────▼────────────────────────────────┐
+│  Layer 2: Deterministic Emergency Override (0ms)            │
+│  Regex pattern scan for acute life-threatening emergencies  │
+└────────────────────────────┬────────────────────────────────┘
+                             │ No Emergency Keywords
+┌────────────────────────────▼────────────────────────────────┐
+│  Layer 3: Structured Google Gemini Flash Execution          │
+│  Server-side JSON Schema generation (~1.2s latency)         │
+│  Cascading fallback: 3.5-flash-lite ➔ 3.5-flash ➔ 3.7-flash │
+└────────────────────────────┬────────────────────────────────┘
+                             │ Valid Response Received
+┌────────────────────────────▼────────────────────────────────┐
+│  Layer 4: Post-Processing Safeguards & Quality Filters      │
+│  - Pediatric routing (<18 years forced to Pediatrics)       │
+│  - Adolescent menstrual reassurance against adult pregnancy │
+│  - Non-medical query rejection (emits ERROR urgency status) │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                             ▼
+              Structured AssessmentResult JSON
+```
+
+---
+
+## 3. Layer Specifications
+
+### Layer 1: Biological Consistency Validation
+* Implemented in `shared/biologicalValidation.ts` (`checkBiologicalImpossibility`).
+* Evaluates reported symptoms against physiological traits of the declared gender.
+* Example: If gender is declared as "Man" or "Male" and symptoms reference pregnancy, ovulation, or menstrual cycles, the engine immediately returns a LOW urgency reassurance with an explanation of biological inconsistency, avoiding inappropriate clinical advice.
+
+### Layer 2: Deterministic 0ms Emergency Override
+* Evaluates input text against pre-compiled regex patterns in `EMERGENCY_PATTERNS`:
+  - **Cardiovascular**: Crushing chest pain, severe chest pressure, radiating arm pain.
+  - **Respiratory**: Shortness of breath, acute dyspnea, severe wheezing.
+  - **Hemorrhagic**: Severe bleeding, coughing blood, hematemesis (vomiting blood).
+  - **Neurological**: Unconsciousness, seizures, loss of consciousness, fainting.
+  - **Stroke Signs**: Facial droop, slurred speech, sudden one-sided weakness.
+  - **Anaphylaxis & Toxins**: Drug overdose, poisoning, acute allergic reactions.
+  - **Psychiatric**: Active suicidal ideation, self-harm intentions.
+* If triggered, the engine immediately yields:
+  - `urgency`: `"EMERGENCY"`
+  - `specialty`: `"Emergency Care"`
+  - `guidance`: Direct instructions to dial `112` or seek immediate hospital admission.
+
+### Layer 3: Structured Gemini Flash Execution
+* The server communicates directly with Google Generative AI REST endpoints using structured JSON schemas (`GEMINI_ASSESSMENT_RESPONSE_SCHEMA`):
+  ```typescript
+  const GEMINI_ASSESSMENT_RESPONSE_SCHEMA = {
+    type: "OBJECT",
+    properties: {
+      urgency: { type: "STRING", enum: ["LOW", "MODERATE", "EMERGENCY", "ERROR"] },
+      specialty: { type: "STRING" },
+      reason: { type: "STRING" },
+      guidance: { type: "STRING" },
+    },
+    required: ["urgency", "specialty", "reason", "guidance"],
+  };
+  ```
+* **Model Cascade**: Automatically cycles through candidates to ensure zero downtime:
+  1. `gemini-3.5-flash-lite` (Primary high-efficiency model, ~1.2s latency)
+  2. `gemini-3.5-flash`
+  3. `gemini-3.1-flash-lite`
+  4. `gemini-3.7-flash`
+  5. `gemini-2.5-flash`
+  6. `gemini-1.5-flash` / `gemini-1.5-flash-8b`
+
+### Layer 4: Post-Processing Safeguards
+* **Pediatric Protection**: Any patient under the age of 18 is strictly routed to `"Pediatrics"` or `"Pediatric & Adolescent Medicine"`.
+* **Adolescent Reassurance**: For young adolescents (aged 10–16) reporting irregular cycles, fatigue, or nausea, the engine replaces adult pregnancy references with age-appropriate context highlighting pubertal hormonal development.
+* **Non-Medical Input Rejection**: If the user submits conversational queries, recipes, coding problems, or gibberish (e.g. "How to bake a cake?"), the system responds with:
+  - `urgency`: `"ERROR"`
+  - `specialty`: `"Error"`
+  - `reason`: `"The input is not related to health symptoms."`
+  - `guidance`: `"The Input is not related towards the Symptoms please try again later"`
+  - The frontend dynamically surfaces a distinct red alert badge for error handling.
+
+### Layer 5: Safe Deterministic Offline Fallback
+* In the event that all upstream AI endpoints fail or network connectivity is severed, the system returns a safe, structured fallback triage response rather than a generic 500 error.
