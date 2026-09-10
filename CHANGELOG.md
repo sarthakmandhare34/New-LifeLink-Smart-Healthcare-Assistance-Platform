@@ -1,34 +1,59 @@
-﻿# Changelog
+# Changelog
 
-All notable changes to the LifeLink Smart Healthcare Platform will be documented in this file.
+All notable changes to the LifeLink Smart Healthcare Assistance Platform will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
 
 ## [1.0.0] - 2026-09-10
 
 ### Added
-- **Liquid-Glass Design System**: Integrated translucent glassmorphism surfaces (ackdrop-filter: blur(24px)) across all patient and doctor dashboards.
-- **Dual-Session Authentication**: Simultaneous login for patients and doctors using isolated HTTP-only cookies.
-- **5-Layer AI Assessment Engine**:
-  - Layer 1: Biological and physiological sanity validation.
-  - Layer 2: Deterministic emergency regex overrides (e.g., chest pain, stroke signs).
-  - Layer 3: Gemini Flash AI cascade with structured clinical confidence scoring.
-  - Layer 4: Pediatric and adolescent safety limits.
-  - Layer 5: Offline fallback triage matrix.
-- **Doctor Portal**: Real-time consultation queue, patient record review, and appointment scheduling.
-- **Single-Port Architecture**: Unified dev/prod server on port 3000 with automatic fallback scanning.
+- **Liquid-Glass Design System**: Integrated translucent glassmorphism surfaces (`backdrop-filter: blur(24px) saturate(155%)`), 117° iridescent angled shimmer borders, atmospheric mesh gradients, and WCAG 2.1 AA-compliant Clinical Aqua palette (`#E6F9FC` background, `#9FFBFF` border, `#00C4CC` primary interactive teal, `#102B2D` slate typography).
+- **Dual Independent Session Architecture**: Concurrent authentication for patients (`app_session_id`) and medical clinicians (`doctor_session_id`) within the same browser instance without token collisions or cross-tenant contamination.
+- **5-Layer Clinical AI Symptom Triage Engine**:
+  - **Layer 1 — Biological Consistency Validation**: Zero-overhead deterministic pre-flight filter (`shared/biologicalValidation.ts`) intercepting biological impossibilities (e.g., pregnancy in biological males).
+  - **Layer 2 — Deterministic 0ms Emergency Override**: High-priority pre-compiled regex filter scanning for acute life-threatening emergencies (crushing chest pain, severe dyspnea, hematemesis, stroke signs, anaphylaxis, suicidal ideation) routing immediately to Emergency Care (`112`).
+  - **Layer 3 — Resilient Google Gemini Flash Cascade**: Structured JSON Schema execution across Google Gemini Flash models (`gemini-3.5-flash-lite`, `gemini-3.5-flash`, `gemini-3.1-flash-lite`, `gemini-3.7-flash`, `gemini-2.5-flash`, `gemini-1.5-flash`).
+  - **Layer 4 — Post-Processing Pediatric & Clinical Safeguards**: Enforces strict pediatric specialist routing for patients <18 years, adolescent menstrual reassurance against premature adult pregnancy assumptions, and non-medical input rejection with `ERROR` status.
+  - **Layer 5 — Deterministic Offline Fallback**: Guarantees structured, graceful triage recommendations even during upstream API quota exhaustion or network partitions.
+- **Dedicated Doctor Workspace**: Complete clinician workspace with real-time consultation queue, patient medical history review, triage findings inspection, and digital prescription authoring.
+- **Cryptographic Digital Prescriptions**: Clinician-authored medication items signed with automated SHA-256 cryptographic integrity hashes, synchronized to the patient's Medicine Cabinet in real-time via Server-Sent Events (SSE).
+- **Mumbai Specialist Rail Network Directory**: Interactive OpenStreetMap Leaflet mapping across Western, Central, and Harbour railway lines with 12 pre-seeded medical specialist clinics.
+- **Single-Port Unified Runtime**: Express API server and Vite frontend dev server bundled on port 3000 with automated port collision scanning (`3001`–`3004`).
 
-### Security
-- Inactivity countdown and 5-minute auto-logout.
-- bcrypt credential hashing with strict validation.
+### Security & Privacy
+- **Automated 5-Minute Inactivity Security**: Client-side activity monitoring across mouse, touch, keyboard, and scroll events; terminates inactive sessions after 300,000ms.
+- **Insecure Direct Object Reference (IDOR) Shield**: All queries and mutations strictly enforce session ownership derivation on the server layer (`ctx.user.id` for patients, `ctx.user.openId` for clinicians).
+- **Zero In-Memory GPS Persistence**: Patient location coordinates processed strictly in-memory on the client; never persisted to the database or logged on the server.
+- **Salted Password Hashing**: Native patient and doctor credentials hashed with bcrypt salt rounds.
+
+---
+
+## [0.8.0] - 2026-08-28
+
+### Added
+- Comprehensive Responsive & Accessibility Audit (WCAG 2.1 AA) supporting viewports from 320px mobile to 1920px widescreen.
+- Fluid typography and layout scaling utilizing CSS `clamp()` and auto-fit CSS grid primitives.
+- Accessible modal dialog primitive (`Popup.tsx`) utilizing React 19 `useId` for screen-reader dialog accessibility.
+- Server-Sent Events (SSE) notification stream for live appointment status transitions (`Requested` ➔ `Confirmed` ➔ `Completed`).
+
+---
 
 ## [0.5.0] - 2026-08-15
 
 ### Added
-- Patient intake form with symptom assessment questionnaires.
-- Doctor dashboard wireframes and appointment booking logic.
-- Initial Gemini API triage integration.
+- Patient intake form and symptom assessment questionnaire.
+- Digital Health Passport tracking blood group, emergency contacts, chronic conditions, and known allergies.
+- Patient Medicine Cabinet with dosage, frequency, and quantity inventory tracking.
+- Pre-seeded 12 Mumbai specialist accounts with default credentials for clinical demonstration.
+- Drizzle Studio integration on port 4983 for visual database inspection.
+
+---
 
 ## [0.1.0] - 2026-07-20
 
 ### Added
-- Initial project scaffolding with Vite, React, and Express.
-- Drizzle ORM database schema definition.
+- Initial project scaffolding with React 19, TypeScript 5.9, Express 4.21, and Vite 7.
+- Relational database schema with 11 core tables in MySQL managed via Drizzle ORM.
+- tRPC 11 type-safe RPC boundary connecting frontend client and Express backend.

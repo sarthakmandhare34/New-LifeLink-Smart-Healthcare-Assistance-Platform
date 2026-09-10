@@ -1,4 +1,4 @@
-# 03. AI Health Assessment & Multi-Layer Safety Architecture
+# 03. AI Health Assessment & 5-Layer Safety Architecture
 
 ## 1. Engine Overview (`backend/ai/assessmentService.ts`)
 
@@ -6,7 +6,7 @@ LifeLink's AI Health Assessment service provides structured, non-diagnostic clin
 
 ---
 
-## 2. Multi-Layer Safety Architecture
+## 2. Multi-Layer Safety Architecture Diagram
 
 ```text
 User Input: { symptoms, age, gender, conditions, duration }
@@ -21,7 +21,7 @@ User Input: { symptoms, age, gender, conditions, duration }
 │  Layer 2: Deterministic Emergency Override (0ms)            │
 │  Regex pattern scan for acute life-threatening emergencies  │
 └────────────────────────────┬────────────────────────────────┘
-                             │ No Emergency Keywords
+                             │ No Emergency Keywords Detected
 ┌────────────────────────────▼────────────────────────────────┐
 │  Layer 3: Structured Google Gemini Flash Execution          │
 │  Server-side JSON Schema generation (~1.2s latency)         │
@@ -34,6 +34,12 @@ User Input: { symptoms, age, gender, conditions, duration }
 │  - Adolescent menstrual reassurance against adult pregnancy │
 │  - Non-medical query rejection (emits ERROR urgency status) │
 └────────────────────────────┬────────────────────────────────┘
+                             │ Upstream Failure / Timeout / Quota Exhaustion
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 5: Deterministic Safe Offline Fallback               │
+│  Graceful non-crashing clinical recommendation matrix       │
+└────────────────────────────┬────────────────────────────────┘
                              │
                              ▼
               Structured AssessmentResult JSON
@@ -41,12 +47,12 @@ User Input: { symptoms, age, gender, conditions, duration }
 
 ---
 
-## 3. Layer Specifications
+## 3. Detailed Layer Specifications
 
 ### Layer 1: Biological Consistency Validation
 * Implemented in `shared/biologicalValidation.ts` (`checkBiologicalImpossibility`).
 * Evaluates reported symptoms against physiological traits of the declared gender.
-* Example: If gender is declared as "Man" or "Male" and symptoms reference pregnancy, ovulation, or menstrual cycles, the engine immediately returns a LOW urgency reassurance with an explanation of biological inconsistency, avoiding inappropriate clinical advice.
+* Example: If gender is declared as "Man" or "Male" and symptoms reference pregnancy, ovulation, or menstrual cycles, the engine immediately returns a LOW urgency reassurance with an explanation of biological inconsistency, avoiding inappropriate clinical advice with 0ms delay.
 
 ### Layer 2: Deterministic 0ms Emergency Override
 * Evaluates input text against pre-compiled regex patterns in `EMERGENCY_PATTERNS`:
@@ -76,7 +82,7 @@ User Input: { symptoms, age, gender, conditions, duration }
     required: ["urgency", "specialty", "reason", "guidance"],
   };
   ```
-* **Model Cascade**: Automatically cycles through candidates to ensure zero downtime:
+* **Model Cascade**: Automatically cycles through candidates to ensure high availability:
   1. `gemini-3.5-flash-lite` (Primary high-efficiency model, ~1.2s latency)
   2. `gemini-3.5-flash`
   3. `gemini-3.1-flash-lite`
@@ -95,4 +101,9 @@ User Input: { symptoms, age, gender, conditions, duration }
   - The frontend dynamically surfaces a distinct red alert badge for error handling.
 
 ### Layer 5: Safe Deterministic Offline Fallback
-* In the event that all upstream AI endpoints fail or network connectivity is severed, the system returns a safe, structured fallback triage response rather than a generic 500 error.
+* In the event that all upstream AI endpoints fail, network connectivity is severed, or API quotas are exhausted, the system catches the error and returns a pre-configured safe clinical fallback:
+  - `urgency`: `"MODERATE"`
+  - `specialty`: `"General Medicine"`
+  - `reason`: `"Automated clinical assessment is currently operating in offline mode."`
+  - `guidance`: `"Please consult a qualified medical professional or visit your nearest primary healthcare center."`
+* This guarantees the application never crashes or displays blank 500 error screens to users seeking medical guidance.

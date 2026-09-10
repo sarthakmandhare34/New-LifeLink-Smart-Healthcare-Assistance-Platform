@@ -23,13 +23,13 @@ We welcome contributions to the LifeLink platform. When submitting pull requests
 * Enforce strict authorization on all tRPC endpoints. Patient procedures must use `protectedProcedure` and derive identity from `ctx.user.id`; clinician procedures must use `doctorProcedure` and validate `ctx.user.openId`.
 
 ### 2. Clinical AI Triage Safety
-* All AI evaluation must pass through the multi-layer safety cascade in `backend/ai/assessmentService.ts`:
+* All AI evaluation must pass through the 5-layer safety cascade in `backend/ai/assessmentService.ts`:
   1. Biological Consistency Validation (`shared/biologicalValidation.ts`)
   2. Deterministic 0ms Emergency Regex Override (`hasEmergencyPattern`)
-  3. Structured JSON generation with Google Gemini Flash
+  3. Structured JSON generation with Google Gemini Flash Cascade
   4. Post-processing Pediatric & Adolescent Safeguards (<18 routed to Pediatrics)
-  5. Non-medical query rejection returning `ERROR` status
-* Never execute Gemini or store API keys on the client layer.
+  5. Deterministic Safe Offline Fallback
+* Never execute Gemini API calls or store API keys in the client layer.
 
 ### 3. Design System & Accessibility
 * Maintain the hybrid **Liquid-Glass** (`backdrop-filter: blur(24px) saturate(155%)`, iridescent border sheen) and **Clinical Aqua** palette (`#E6F9FC`, `#9FFBFF`, `#00C4CC`, `#102B2D`).
@@ -38,3 +38,12 @@ We welcome contributions to the LifeLink platform. When submitting pull requests
 ### 4. Code Hygiene & Testing
 * Run `npm run verify` prior to submitting commits.
 * Ensure 0 TypeScript compilation errors (`npm run check`) and passing unit/integration test suites (`npm test`).
+
+---
+
+## 📄 Related Project Policies
+
+* [**Code of Security & Vulnerability Reporting**](SECURITY.md)
+* [**Changelog & Release Notes**](CHANGELOG.md)
+* [**System Architecture & Diagrams**](SYSTEM_DIAGRAMS.md)
+* [**MIT License**](LICENSE)

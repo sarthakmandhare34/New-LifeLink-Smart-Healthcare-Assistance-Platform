@@ -7,14 +7,14 @@ A comprehensive visual and technical reference illustrating the software archite
 ## 1. Project Files & Directory Architecture
 
 ```text
-LifeLink-Platform/
+LifeLink-Smart-Healthcare-Assistance-Platform/
 │
-├── 🗄️ DATABASE LAYER [Related to: ER Diagram]
+├── 🗄️ DATABASE PERSISTENCE LAYER [Related to: Section 2 ER Diagram]
 │   ├── database/schema.ts                 <-- [EDIT] Drizzle MySQL schema (11 relational tables & relations)
 │   ├── database/drizzle.config.ts         <-- [READ] Database connection & Drizzle Studio config
 │   └── database/migrations/               <-- [AUTO] Versioned SQL migration history
 │
-├── ⚙️ BACKEND API LAYER [Related to: Class & Sequence Diagrams]
+├── ⚙️ BACKEND API & SERVICES LAYER [Related to: Section 3 Class & Section 5 Sequence Diagrams]
 │   ├── backend/_core/index.ts             <-- [READ] Express entry point, cookie parsers, Vite dev middleware
 │   ├── backend/_core/context.ts           <-- [READ] Dual session context parser (app_session_id & doctor_session_id)
 │   ├── backend/_core/trpc.ts              <-- [READ] tRPC procedures (publicProcedure, protectedProcedure, doctorProcedure)
@@ -23,12 +23,15 @@ LifeLink-Platform/
 │   │   ├── patient.ts                     <-- [EDIT] Patient APIs (auth, health passport, appointments, medicines)
 │   │   └── doctor.ts                      <-- [EDIT] Doctor APIs (queue triage, consultations, digital prescriptions)
 │   ├── backend/db.ts                      <-- [EDIT] Type-safe Drizzle SQL queries & relational helpers
-│   ├── backend/ai/assessmentService.ts    <-- [EDIT] 4-layer AI symptom triage & Gemini Flash cascade engine
+│   ├── backend/ai/assessmentService.ts    <-- [EDIT] 5-layer AI symptom triage & Gemini Flash cascade engine
 │   ├── backend/realtime/eventBus.ts       <-- [EDIT] Scoped Server-Sent Events (SSE) notification broadcaster
+│   ├── backend/storage.ts                 <-- [READ] Cloud S3 / local profile asset storage adapter
+│   ├── backend/syntheticDoctor.ts        <-- [READ] 12 Mumbai specialist accounts provisioning helpers
 │   └── backend/auth/                      <-- [READ] Native bcrypt hashing, JWT issuance, Google OAuth
 │
-├── 💻 FRONTEND CLIENT LAYER [Related to: Component & Activity Diagrams]
+├── 💻 FRONTEND CLIENT INTERFACE LAYER [Related to: Section 3 Component & Section 4 Activity Diagrams]
 │   ├── frontend/src/App.tsx               <-- [EDIT] React Router hierarchy (/patient/*, /doctor/*, /workspace)
+│   ├── frontend/src/index.css             <-- [EDIT] Liquid-Glass design tokens, atmospheric mesh, WCAG 2.1 AA rules
 │   ├── frontend/src/components/layout/
 │   │   ├── AppShell.tsx                   <-- [EDIT] Patient portal navigation, drawer & header shell
 │   │   └── DoctorAppShell.tsx             <-- [EDIT] Clinician workspace navigation, drawer & header shell
@@ -36,10 +39,13 @@ LifeLink-Platform/
 │   │   ├── Card.tsx                       <-- [EDIT] Liquid-Glass surface container primitive
 │   │   ├── Button.tsx                     <-- [EDIT] Accessible button primitive
 │   │   └── Popup.tsx                      <-- [EDIT] Modal dialog with useId accessibility
+│   ├── frontend/src/hooks/
+│   │   ├── patientInactivity.ts           <-- [EDIT] 5-minute inactivity session tracking hook
+│   │   └── useSSE.ts                      <-- [EDIT] Live Server-Sent Events subscription hook
 │   └── frontend/src/features/
 │       ├── patient/
 │       │   ├── Dashboard.tsx              <-- [EDIT] Aggregated clinical overview
-│       │   ├── Assessment/                <-- [EDIT] AI Symptom Checker & Triage interface
+│       │   ├── Assessment/                <-- [EDIT] 5-stage AI Symptom Checker & Triage interface
 │       │   ├── Specialists/               <-- [EDIT] Mumbai Specialist Rail Network directory & Leaflet map
 │       │   ├── Appointments/              <-- [EDIT] Appointment booking & consultation history
 │       │   ├── HealthPassport/            <-- [EDIT] Medical passport, chronic conditions, emergency contacts
@@ -53,6 +59,12 @@ LifeLink-Platform/
 │           ├── Login.tsx                  <-- [EDIT] Patient authentication
 │           ├── Register.tsx               <-- [EDIT] Patient registration
 │           └── WorkspaceSelector.tsx      <-- [EDIT] Portal chooser (Patient vs Doctor Workspace)
+│
+├── 🌐 ISOMORPHIC SHARED DOMAIN LAYER
+│   ├── shared/biologicalValidation.ts     <-- [READ] Deterministic biological consistency rules
+│   ├── shared/const.ts                    <-- [READ] Cookie tokens, session timeouts, role enums
+│   ├── shared/mumbaiRailNetwork.ts        <-- [READ] Mumbai Suburban rail stations & corridors
+│   └── shared/types.ts                    <-- [READ] Cross-boundary TypeScript schemas & contracts
 │
 └── 🛠️ RUNTIME & SETUP SCRIPTS
     ├── scripts/init-db.ts                 <-- [RUN] Idempotently provisions 'lifelink' database in MySQL
@@ -276,7 +288,7 @@ classDiagram
 
 ## 4. Activity Workflows
 
-### A. 4-Layer Clinical AI Symptom Triage
+### A. 5-Layer Clinical AI Symptom Triage
 ```mermaid
 flowchart TD
     Start([Patient Enters Symptoms & Vitals]) --> BioCheck{Layer 1: Biological Impossibility?}

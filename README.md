@@ -1,262 +1,382 @@
-# LifeLink — Smart Healthcare Assistance Platform
+# 🏥 LifeLink — Smart Healthcare Assistance Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![React 19](https://img.shields.io/badge/React-19.2.1-61dafb.svg?logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178c6.svg?logo=typescript)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-7.1.7-646cff.svg?logo=vite)](https://vitejs.dev/)
-[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-v4.1.14-38bdf8.svg?logo=tailwindcss)](https://tailwindcss.com/)
-[![tRPC v11](https://img.shields.io/badge/tRPC-11.6.0-2596be.svg?logo=trpc)](https://trpc.io/)
-[![Drizzle ORM](https://img.shields.io/badge/Drizzle%20ORM-0.44.5-C5F74F.svg?logo=drizzle)](https://orm.drizzle.team/)
+[![React 19](https://img.shields.io/badge/React-19-61dafb.svg?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-v4-38bdf8.svg?logo=tailwindcss)](https://tailwindcss.com/)
+[![Google Gemini AI](https://img.shields.io/badge/Google%20Gemini-AI-4285F4.svg?logo=google)](https://ai.google.dev/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1.svg?logo=mysql)](https://www.mysql.com/)
-[![Google Gemini AI](https://img.shields.io/badge/Google%20Gemini-2.5%20%2F%203.5%20Flash-4285F4.svg?logo=google)](https://ai.google.dev/)
 
-LifeLink is an enterprise-grade, full-stack patient healthcare-assistance platform and clinician workspace. It integrates patient-owned digital health records, a multi-layer AI-assisted symptom triage engine with deterministic safety overrides, an interactive Mumbai Specialist Rail Network Finder, a live appointment lifecycle management system, digital prescriptions backed by SHA-256 cryptographic integrity verification, real-time Server-Sent Events (SSE), and a dedicated Doctor Portal supporting simultaneous multi-session clinical operations.
-
----
-
-## 🌟 Key Highlights & Core Capabilities
-
-### 1. Dual Independent Session Architecture
-* **Simultaneous Login**: Allows clinicians and patients to operate concurrently within the same browser instance without credential collision.
-* **Separated Cookie Context**: Employs distinct, HTTP-only secure cookie tokens: `app_session_id` (Patient) and `doctor_session_id` (Clinician).
-* **Role-Guarded tRPC Middleware**: Strictly isolates patient endpoints (`protectedProcedure`) and clinical procedures (`doctorProcedure`), eliminating Insecure Direct Object Reference (IDOR) risks.
-
-### 2. Multi-Layer Clinical AI Symptom Triage Engine
-* **Layer 1 — Biological Validation**: Deterministic pre-flight filters (`shared/biologicalValidation.ts`) prevent biologically contradictory symptom evaluations (e.g., pregnancy or uterine disorders in biological males) with 0ms overhead.
-* **Layer 2 — Deterministic Emergency Override**: High-priority regex patterns instantly intercept acute critical red-flags (crushing chest pain, severe dyspnea, hematemesis, stroke signs, anaphylaxis, suicidal ideation) and mandate immediate emergency care (`112`) with 0ms latency, completely bypassing LLM round-trips.
-* **Layer 3 — Resilient Gemini Flash Cascade**: Ultra-low-latency (~1.2s) server-side execution utilizing a structured JSON schema across Google Gemini Flash models (`gemini-3.5-flash-lite`, `gemini-3.5-flash`, `gemini-3.1-flash-lite`, `gemini-3.7-flash`, etc.).
-* **Layer 4 — Post-Processing Pediatric & Clinical Safeguards**: Enforces strict pediatric routing (<18 years routed to Pediatrics), adolescent menstrual reassurance against premature adult pregnancy assumptions, and non-medical query rejection (`ERROR` status with dedicated alert badge UI).
-* **Layer 5 — Deterministic Offline Fallback**: Guarantees graceful, non-crashing triage recommendations even during complete network partitions or upstream quota limits.
-
-### 3. Dedicated Doctor Workspace & Clinical State Machine
-* **12 Pre-Seeded Mumbai Specialist Profiles**: Ready-to-use clinical accounts spanning Cardiology, Neurology, Pediatrics, Orthopedics, Gynecology, Dermatology, Oncology, Psychiatry, and more.
-* **Realtime Appointment State Machine**: Transitions seamlessly from `Requested` ➔ `Confirmed` ➔ `Completed` / `Cancelled`.
-* **Cryptographic Digital Prescriptions**: Clinicians author medication line-items and sign prescriptions with automated SHA-256 integrity hashing, automatically synchronizing into the patient's Medicine Cabinet via Server-Sent Events (SSE).
-* **Clinical Consultation Notes**: Direct review of patient medical history, past triage evaluations, known allergies, ongoing medications, and emergency contacts.
-
-### 4. Patient Portal & Digital Health Passport
-* **Health Passport**: Encrypted, patient-owned demographic profile, blood group registry, chronic conditions, and emergency contact network.
-* **Medicine Cabinet**: Complete schedule manager tracking dosages, frequencies, intervals, and inventory quantities.
-* **Mumbai Specialist Rail Network Locator**: Integrated OpenStreetMap Leaflet mapping across Western, Central, and Harbour railway corridors with zero client-side API key leakage.
-* **SOS & Emergency Workflow**: Privacy-bounded emergency dialer (`112`) and pre-filled emergency SMS drafting requiring explicit user confirmation.
-
-### 5. Automated 5-Minute Inactivity Security
-* Client-side activity monitoring across all user inputs (`mousemove`, `keydown`, `mousedown`, `touchstart`, `scroll`).
-* Automatically expires stale sessions after 5 minutes of inactivity across both Patient and Doctor portals, preventing unauthorized access in clinical environments.
-
-### 6. Hybrid Design System: Liquid-Glass & Clinical Aqua
-* **Liquid-Glass Aesthetic**: Translucent glassmorphism (`backdrop-filter: blur(24px) saturate(155%)`), 117° iridescent borders, multi-stop atmospheric mesh gradients, and light sheen highlights.
-* **Clinical Aqua Palette**: High-contrast, WCAG 2.1 AA-compliant color palette (`#E6F9FC` surfaces, `#9FFBFF` borders, `#00C4CC` primary interactive teal, `#102B2D` slate typography) engineered for readability in medical contexts.
-* **Accessibility**: Fully keyboard-navigable (`Tab`, `Enter`, `Escape`), focus rings, fluid `clamp()` responsive layouts (320px mobile to 1920px widescreen).
+> A full-stack web application that helps patients track their health and connects them with doctors — powered by Google Gemini AI for smart symptom checking.
 
 ---
 
-## 🏗️ Technology Stack
+## 🤔 What is LifeLink?
 
-| Layer | Technologies |
+LifeLink is a **healthcare web app** built for patients and doctors. Think of it like a digital health assistant that lives in your browser.
+
+Here's what it does in simple terms:
+
+- 🧠 **You describe your symptoms** → AI analyzes them and tells you which type of doctor to see and how urgent it is
+- 📋 **Stores your medical history** — like a digital health card with your allergies, blood group, and medicines
+- 🗓️ **Book appointments** with real Mumbai specialists (12 doctors pre-loaded)
+- 💊 **Doctors can write digital prescriptions** that automatically appear in your Medicine Cabinet
+- 🚨 **Emergency button** — instantly connects you to `112` emergency services with one click
+- 🗺️ **Map of doctors near Mumbai railway stations** — find the nearest specialist on the Mumbai local rail network
+
+---
+
+## ✨ Main Features (What Can You Actually Do?)
+
+### 👤 As a Patient
+| Feature | What it does |
 | :--- | :--- |
-| **Frontend Framework** | [React 19.2](https://react.dev/), [TypeScript 5.9](https://www.typescriptlang.org/), [Vite 7.1](https://vitejs.dev/) |
-| **Routing & Navigation** | [React Router 7](https://reactrouter.com/) |
-| **Design & UI Primitives**| [Tailwind CSS v4](https://tailwindcss.com/), Radix UI, Framer Motion, Lucide Icons |
-| **State & API Client** | [tRPC 11](https://trpc.io/), [TanStack React Query v5](https://tanstack.com/query) |
-| **Backend Runtime** | [Node.js](https://nodejs.org/) (ES Modules), [Express 4.21](https://expressjs.com/) |
-| **API Architecture** | Type-safe tRPC Procedures (Public, Protected, Doctor), Server-Sent Events (SSE) |
-| **Database & ORM** | [MySQL 8.x](https://www.mysql.com/), [Drizzle ORM 0.44](https://orm.drizzle.team/), Drizzle Kit |
-| **Authentication** | Dual Signed Session JWTs, Password Hashing, Google OAuth 2.0 (state/nonce validation) |
-| **AI Decision Support** | [Google Gemini Flash API](https://ai.google.dev/) (`@google/genai` REST) with JSON Schema |
-| **Maps & Location** | [Leaflet](https://leafletjs.com/), React-Leaflet, OpenStreetMap (Privacy-Bounded) |
-| **Quality & Testing** | [Vitest 2.1](https://vitest.dev/), Testing Library, TypeScript Compiler (`tsc`) |
+| **Sign Up / Log In** | Create your account and access your personal health dashboard |
+| **AI Symptom Checker** | Describe what you're feeling — AI tells you urgency (Low / Moderate / Emergency) and which doctor to see |
+| **Health Passport** | Store your blood group, chronic conditions (e.g. diabetes), and emergency contacts |
+| **Medicine Cabinet** | Track all your medicines — names, dosage, how often to take them |
+| **Book Appointments** | Book with any of the 12 Mumbai specialist doctors |
+| **View Prescriptions** | See what your doctor prescribed — verified with a digital signature |
+| **Emergency Page** | One-tap access to call `112` or send SOS SMS to your emergency contacts |
+| **Find Specialists** | See doctors on a live map based on Mumbai's local train network |
+
+### 🩺 As a Doctor
+| Feature | What it does |
+| :--- | :--- |
+| **Doctor Login** | Separate login from patients — login at `/workspace` |
+| **View Appointments** | See all patient bookings waiting for your approval |
+| **Patient History** | Look at a patient's full medical record before the consultation |
+| **Write Prescriptions** | Add medicines, dosages, and notes — it auto-syncs to the patient's app |
+| **Consultation Notes** | Write detailed clinical notes for each patient visit |
 
 ---
 
-## 📁 Repository Structure
+## 🔒 Cool Security Features
 
-```text
-LifeLink-Smart-Healthcare-Assistance-Platform/
-├── frontend/                     # Modern React 19 single-page application
-│   ├── public/                   # Public assets, brand logos, favicons
-│   │   └── assets/branding/      # LifeLink brand mark & atmospheric lockups
-│   └── src/
-│       ├── _core/hooks/          # Session authentication & React hooks
-│       ├── components/           # Reusable UI primitives & layout shells
-│       │   ├── brand/            # LifeLink vectorized SVG branding
-│       │   ├── layout/           # AppShell (Patient) & DoctorAppShell (Clinician)
-│       │   └── ui/               # Card (Liquid-Glass), Button, Input, Popup, Badge
-│       ├── context/              # ThemeContext (Dark / Light liquid-glass tokens)
-│       ├── features/
-│       │   ├── entry/            # Login, Register, WorkspaceSelector (Portal Gate)
-│       │   ├── patient/          # Dashboard, Assessment, Specialists, Medicines,
-│       │   │                     # Appointments, HealthPassport, Prescriptions, Emergency
-│       │   └── doctor/           # Dashboard, Appointments, Patients, Consultations,
-│       │                         # Prescriptions, Setup, Profile, Settings
-│       ├── hooks/                # Inactivity timers, SSE patient/doctor listeners
-│       ├── lib/                  # tRPC client instance, class merging utilities
-│       ├── index.css             # Liquid-glass tokens, atmospheric mesh, responsive rules
-│       └── main.tsx              # Application entry point & React root
-│
-├── backend/                      # Express application & tRPC backend
-│   ├── _core/                    # Server bootstrap, cookies, env config, tRPC context
-│   ├── ai/                       # AI Health Assessment service & safety guards
-│   ├── auth/                     # Native auth, doctor auth, OAuth, password hashing
-│   ├── discovery/                # Controlled Mumbai specialist mock directory
-│   ├── realtime/                 # EventBus & SSE notification streams
-│   ├── routers/                  # Modular tRPC feature routers (patient.ts, doctor.ts)
-│   ├── db.ts                     # Database query layer & Drizzle SQL helpers
-│   ├── routers.ts                # Master tRPC appRouter definition
-│   ├── storage.ts                # Cloud S3 profile asset storage adapter
-│   └── syntheticDoctor.ts        # Synthetic doctor registry & helpers
-│
-├── database/                     # Relational persistence layer
-│   ├── schema.ts                 # Drizzle MySQL schema (11 core tables + relations)
-│   ├── drizzle.config.ts         # Drizzle Kit migration & studio configuration
-│   └── migrations/               # Versioned SQL migration history
-│
-├── shared/                       # Cross-boundary type contracts & constants
-│   ├── biologicalValidation.ts   # Deterministic gender/symptom validation rules
-│   ├── const.ts                  # Session cookie names, timeout limits, auth constants
-│   ├── mumbaiRailNetwork.ts      # Mumbai Suburban rail line directory (Central/Harbour/Western)
-│   ├── mumbaiStationCoordinates.ts # Geospatial coordinates for Mumbai stations
-│   └── types.ts                  # Shared data models & TypeScript schemas
-│
-├── scripts/                      # Operational utilities & runners
-│   ├── dev.mjs                   # Unified development runner (Express + Vite on port 3000)
-│   ├── init-db.ts                # Idempotent MySQL database initialisation
-│   └── seed-doctors.ts           # Cleans test users & provisions 12 Mumbai specialist accounts
-│
-├── implementation-reports/       # Architectural specifications & batch audit logs
-│   ├── 01-system-architecture.md
-│   ├── 02-database-and-auth.md
-│   ├── 03-ai-assessment-and-safety.md
-│   ├── 04-doctor-portal-and-consultation.md
-│   ├── 05-local-development-and-ports.md
-│   └── batch-17-responsive-accessibility-ui-audit.md
-│
-├── CONTRIBUTORS.md               # Maintainer credits & contribution standards
-├── SYSTEM_DIAGRAMS.md            # Complete Mermaid ER, Class, and Sequence diagrams
-└── package.json                  # Root dependencies, scripts, and package metadata
+- **Auto Logout**: If you don't touch the screen for **5 minutes**, the app logs you out automatically (important for hospital computers that others might use)
+- **Separate Doctor & Patient Sessions**: A doctor and patient can be logged in at the same time in the same browser — without mixing up their data
+- **Encrypted Passwords**: Passwords are stored safely using bcrypt hashing (never stored as plain text)
+- **Tamper-proof Prescriptions**: Each prescription has a unique SHA-256 digital signature so no one can fake or modify it
+
+---
+
+## 🧠 How the AI Works (Simplified)
+
+When you type your symptoms, the AI doesn't just ask Google. It goes through **5 safety checks** before giving you an answer:
+
+```
+You type your symptoms
+        │
+        ▼
+Step 1: Is this biologically possible?
+        (e.g. Can a male be pregnant? → No → Returns a gentle correction)
+        │
+        ▼
+Step 2: Is this an EMERGENCY? (checks for keywords like "chest pain", "can't breathe", "suicidal")
+        → YES: Immediately shows "Call 112" — no AI needed
+        │
+        ▼
+Step 3: Send to Google Gemini AI to analyze
+        (uses multiple Gemini models as backup if one fails)
+        │
+        ▼
+Step 4: Safety check on the AI's answer
+        (Is the patient under 18? → Route to Pediatrics)
+        (Non-health question like "recipe for pasta"? → Reject with ERROR)
+        │
+        ▼
+Step 5: If the internet is down or AI fails → Show a safe default response
+        (Never crashes, never leaves you without guidance)
 ```
 
 ---
 
-## ⚙️ Quick Start & Local Setup
+## 🛠️ Tech Stack (What We Built This With)
 
-### Prerequisites
-* **Node.js**: v22.0.0 or higher
-* **npm**: v10+ (or **pnpm** v10+)
-* **MySQL Database**: MySQL 8.0+ running locally or in Docker
+You don't need to know all of these, but here's a breakdown:
 
-### Step 1: Clone Repository
-```powershell
+| What it does | Technology |
+| :--- | :--- |
+| **Frontend (What you see)** | React 19, TypeScript, Tailwind CSS v4 |
+| **Backend (Server)** | Node.js, Express, tRPC |
+| **Database** | MySQL 8 with Drizzle ORM |
+| **AI** | Google Gemini Flash API |
+| **Authentication** | JWT sessions + Google OAuth |
+| **Real-time updates** | Server-Sent Events (SSE) |
+| **Maps** | Leaflet + OpenStreetMap |
+| **Testing** | Vitest, TypeScript compiler |
+| **Build tool** | Vite 7 |
+
+> **Why tRPC?** It lets the frontend and backend share the same TypeScript types — so if you change an API, the frontend automatically knows about it. No manual documentation needed!
+
+---
+
+## 📁 Repository Structure & Directory Organization
+
+Every file in LifeLink is organized into designated subdirectories according to architectural boundaries:
+
+```text
+LifeLink-Smart-Healthcare-Assistance-Platform/
+│
+├── 📁 frontend/                                    # Modern React 19 single-page application
+│   ├── index.html                                 # HTML5 entry shell & viewport meta definitions
+│   ├── public/                                    # Static assets, branding marks, and favicons
+│   │   └── assets/branding/                       # SVG logos, emblem locks, and brand vectors
+│   └── src/                                       # Application source code
+│       ├── main.tsx                               # React root bootstrap & DOM mounting
+│       ├── App.tsx                                # Central route definitions (/patient, /doctor, /workspace)
+│       ├── index.css                              # Liquid-Glass CSS tokens, mesh gradients, WCAG rules
+│       │
+│       ├── 📁 _core/                              # Core client infrastructure & session hooks
+│       │   └── hooks/                             # useAuth, useDoctorAuth context consumers
+│       │
+│       ├── 📁 components/                         # Reusable design system primitives
+│       │   ├── brand/                             # Vectorized LifeLink brand logos
+│       │   ├── layout/                            # AppShell (Patient) & DoctorAppShell (Clinician)
+│       │   └── ui/                                # Liquid-Glass Card, Button, Input, Popup, Badge
+│       │
+│       ├── 📁 context/                            # Application-wide React context providers
+│       │   └── ThemeContext.tsx                   # Light & dark theme state with liquid-glass tokens
+│       │
+│       ├── 📁 features/                           # Domain feature modules
+│       │   ├── 📁 entry/                          # Portal entry points & authentication
+│       │   │   ├── Login.tsx                      # Patient sign-in view
+│       │   │   ├── Register.tsx                   # Patient registration view
+│       │   │   └── WorkspaceSelector.tsx          # Portal gate (Patient vs Doctor Workspace)
+│       │   │
+│       │   ├── 📁 patient/                        # Patient Portal capabilities
+│       │   │   ├── Dashboard.tsx                  # Aggregated patient overview & quick actions
+│       │   │   ├── Assessment/                    # 5-stage AI symptom triage assessment form
+│       │   │   ├── Specialists/                   # Mumbai Specialist Rail Network directory & map
+│       │   │   ├── Appointments/                  # Appointment scheduling & active booking queue
+│       │   │   ├── HealthPassport/                # Demographics, blood group, chronic conditions
+│       │   │   ├── Medicines/                     # Medicine cabinet schedule & inventory tracker
+│       │   │   ├── Prescriptions/                 # Digital prescription viewer & verification
+│       │   │   ├── Emergency/                     # 112 emergency dialer & SMS trigger workflows
+│       │   │   ├── Profile/                       # Patient profile photo and account settings
+│       │   │   └── Settings/                      # Preferences, theme toggles, and security settings
+│       │   │
+│       │   └── 📁 doctor/                         # Dedicated Doctor Workspace
+│       │       ├── Dashboard.tsx                  # Clinician triage queue & practice statistics
+│       │       ├── Setup.tsx                      # Specialist onboarding & consultation schedule
+│       │       ├── Login.tsx                      # Dedicated doctor login with credentials
+│       │       ├── ResetPassword.tsx              # Password reset flow for clinical accounts
+│       │       ├── Appointments/                  # Appointment state machine management
+│       │       ├── Assessments/                   # Review patient AI symptom assessments
+│       │       ├── Consultations/                 # Live patient consultation & notes workspace
+│       │       ├── Patients/                      # Patient roster & medical history browser
+│       │       ├── Prescriptions/                 # Digital prescription authoring & SHA-256 signing
+│       │       ├── Profile/                       # Doctor credential view & hospital affiliation
+│       │       └── Settings/                      # Workstation preferences & logout trigger
+│       │
+│       ├── 📁 hooks/                              # Custom React hooks
+│       │   ├── patientInactivity.ts               # 5-minute activity tracker & auto-logout
+│       │   └── useSSE.ts                          # Server-Sent Events listener for real-time updates
+│       │
+│       ├── 📁 lib/                                # Shared frontend libraries & clients
+│       │   ├── trpc.ts                            # Typed tRPC client instance with React Query
+│       │   └── utils.ts                           # Tailwind CSS class merging (clsx + twMerge)
+│       │
+│       └── 📁 types/                              # Frontend-specific type definitions
+│
+├── 📁 backend/                                    # Express server & tRPC backend
+│   ├── db.ts                                      # Database query layer & Drizzle SQL helpers
+│   ├── routers.ts                                 # Master tRPC appRouter connecting all sub-routers
+│   ├── storage.ts                                 # Cloud S3 / local profile photo storage adapter
+│   ├── syntheticDoctor.ts                         # Provisioning logic for 12 Mumbai specialist accounts
+│   ├── profilePhoto.ts                            # Avatar image upload processing & optimization
+│   │
+│   ├── 📁 _core/                                  # Server infrastructure
+│   │   ├── index.ts                               # Server bootstrap, Express middleware, Vite dev bridge
+│   │   ├── context.ts                             # Dual-session cookie extraction & tRPC context builder
+│   │   ├── trpc.ts                                # tRPC procedure definitions (public, protected, doctor)
+│   │   └── env.ts                                 # Validated environment variables (Zod-enforced)
+│   │
+│   ├── 📁 ai/                                     # Clinical AI Triage & Safety Engine
+│   │   ├── assessmentService.ts                   # 5-layer AI symptom triage & Gemini Flash cascade
+│   │   └── assessmentService.test.ts              # Unit tests for emergency regex and triage safety
+│   │
+│   ├── 📁 auth/                                   # Authentication & session controllers
+│   │   ├── authUtil.ts                            # JWT token generation & verification helpers
+│   │   ├── nativePatientAuth.ts                   # Patient credential verification & bcrypt hashing
+│   │   ├── doctorAuth.ts                          # Clinician credential verification & session issuance
+│   │   └── providerAuth.ts                        # Google OAuth 2.0 PKCE / state verification
+│   │
+│   ├── 📁 discovery/                              # Geospatial discovery & directories
+│   │   └── specialistDirectory.ts                 # Controlled Mumbai rail specialist directory
+│   │
+│   ├── 📁 realtime/                               # Real-time event broadcasting
+│   │   └── eventBus.ts                            # In-memory EventEmitter & SSE broadcast stream
+│   │
+│   └── 📁 routers/                                # Modular tRPC API endpoint routers
+│       ├── patient.ts                             # Patient operations (profile, medicines, passport)
+│       └── doctor.ts                              # Doctor operations (queue, consultations, prescriptions)
+│
+├── 📁 database/                                   # Relational persistence layer
+│   ├── schema.ts                                  # Drizzle MySQL schema (11 core tables + relations)
+│   ├── drizzle.config.ts                          # Drizzle Kit migration & studio configuration
+│   └── migrations/                                # Versioned SQL migration files
+│
+├── 📁 shared/                                     # Isomorphic code shared between frontend & backend
+│   ├── biologicalValidation.ts                    # Deterministic biological consistency rules
+│   ├── const.ts                                   # Cookie names, session constants, timeout limits
+│   ├── mumbaiRailNetwork.ts                       # Rail line directory (Central, Western, Harbour)
+│   ├── mumbaiStationCoordinates.ts                # Geospatial coordinates for Mumbai stations
+│   └── types.ts                                   # Shared data schemas & type contracts
+│
+├── 📁 scripts/                                    # Operational runners & database utilities
+│   ├── dev.mjs                                    # Unified single-port dev runner (Express + Vite on 3000)
+│   ├── init-db.ts                                 # Idempotent MySQL database provisioning script
+│   ├── seed-doctors.ts                            # Provisions 12 Mumbai specialist accounts
+│   └── clear-users.ts                             # Development database reset helper
+│
+├── 📁 implementation-reports/                     # Engineering specifications & verification audits
+│   ├── 01-system-architecture.md                  # Comprehensive architectural overview
+│   ├── 02-database-and-auth.md                    # Database model, foreign keys, dual-session auth
+│   ├── 03-ai-assessment-and-safety.md             # 5-layer AI triage engine & safety nets
+│   ├── 04-doctor-portal-and-consultation.md       # Clinician workspace & cryptographic prescriptions
+│   ├── 05-local-development-and-ports.md          # Local development guide, ports, console hotkeys
+│   └── batch-17-responsive-accessibility-ui-audit.md # WCAG 2.1 AA responsive & accessibility audit
+│
+├── 📄 CONTRIBUTORS.md                             # Maintainer credits & contribution guidelines
+├── 📄 SYSTEM_DIAGRAMS.md                          # Mermaid ER, Class, Sequence, and State diagrams
+├── 📄 SECURITY.md                                 # Healthcare security policy & vulnerability reporting
+├── 📄 CHANGELOG.md                                # Chronological release notes & feature tracking
+├── 📄 LICENSE                                     # MIT License terms
+├── 📄 package.json                                # Dependencies, build scripts, and engine constraints
+├── 📄 tsconfig.json                               # Strict TypeScript configuration
+├── 📄 vite.config.ts                              # Vite 7 build configuration
+└── 📄 vitest.config.ts                            # Vitest unit & integration test configuration
+```
+
+---
+
+## ⚙️ How to Run the Project Locally
+
+### Step 1: Make Sure You Have These Installed
+- ✅ **Node.js** v22 or newer → [Download here](https://nodejs.org/)
+- ✅ **MySQL 8** running on your computer → [Download here](https://dev.mysql.com/downloads/)
+- ✅ A **Google Gemini API key** (free) → [Get one here](https://aistudio.google.com/)
+
+### Step 2: Clone the Repository
+```bash
 git clone https://github.com/sarthakmandhare34/New-LifeLink-Smart-Healthcare-Assistance-Platform.git
 cd New-LifeLink-Smart-Healthcare-Assistance-Platform
 npm install
 ```
 
-### Step 2: Configure Environment Variables
-Create a `.env` file in the project root:
+### Step 3: Set Up Your Environment File
+Create a file called `.env` in the root folder and paste this:
 ```env
-# Database Connection
-DATABASE_URL="mysql://root:password@localhost:3306/lifelink"
+# Your MySQL database (change the password to yours)
+DATABASE_URL="mysql://root:yourpassword@localhost:3306/lifelink"
 
-# Session Security
-JWT_SECRET="your-super-secret-jwt-key-min-32-characters"
+# Make up a long random string (at least 32 characters)
+JWT_SECRET="any-long-random-string-you-make-up-here"
 
-# AI Decision Support (Server-Side Only)
-GEMINI_API_KEY="your-google-gemini-api-key"
-
-# Optional: Google OAuth 2.0 Credentials
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-
-# Server Port (Default: 3000)
-PORT=3000
+# Your Google Gemini API key
+GEMINI_API_KEY="paste-your-gemini-api-key-here"
 ```
 
-### Step 3: Initialize Database Schema
-```powershell
-# 1. Create the MySQL database
+### Step 4: Set Up the Database
+```bash
+# Create the database
 npx tsx scripts/init-db.ts
 
-# 2. Push Drizzle schema & generate migrations
+# Create all the tables
 npm run db:push
 
-# 3. Seed default Mumbai specialist doctor accounts
+# Add the 12 test doctors
 npx tsx scripts/seed-doctors.ts
 ```
 
-### Step 4: Launch Local Development Server
-```powershell
+### Step 5: Start the App 🚀
+```bash
 npm run dev
 ```
-Open **[http://localhost:3000](http://localhost:3000)** in your browser.
+Then open **[http://localhost:3000](http://localhost:3000)** in your browser. That's it!
 
 ---
 
-## 🩺 Pre-Seeded Doctor Accounts
+## 🩺 Test Doctor Accounts
 
-For development and demonstration, the system comes pre-configured with 12 Mumbai specialist accounts. You can log into any specialist at `/doctor/login` or via the **Workspace Selector** (`/workspace`):
+When the app starts, 12 doctor accounts are already loaded. You can log into any of them at `/workspace` → **Doctor Login**.
 
-| Specialty | Clinician Name | Username / Email | Password | Locality / Station | Rail Corridor |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Cardiology** | Dr. Rajesh Sharma | `cardiology` | `demo` | Dadar | Central & Western |
-| **Gynecology** | Dr. Ananya Iyer | `gynecology` | `demo` | Bandra | Western & Harbour |
-| **Pediatrics** | Dr. Vikram Patel | `pediatrics` | `demo` | Andheri | Western & Harbour |
-| **Orthopedics** | Dr. Suresh Deshmukh | `orthopedics` | `demo` | Thane | Central |
-| **Neurology** | Dr. Meera Kulkarni | `neurology` | `demo` | Vashi | Harbour |
-| **Dermatology** | Dr. Rohan Gupta | `dermatology` | `demo` | Borivali | Western |
-| **Oncology** | Dr. Sunita Rao | `oncology` | `demo` | Parel | Central |
-| **Psychiatry** | Dr. Amit Joshi | `psychiatry` | `demo` | Kurla | Central & Harbour |
-| **Gastroenterology**| Dr. Priya Nair | `gastroenterology` | `demo` | Ghatkopar | Central |
-| **Pulmonology** | Dr. Sandeep Verma | `pulmonology` | `demo` | Kalyan | Central |
-| **Ophthalmology** | Dr. Pooja Shah | `ophthalmology` | `demo` | Churchgate | Western |
-| **ENT** | Dr. Nitin Patil | `ent` | `demo` | Panvel | Harbour |
-
----
-
-## 🔌 Port Management & Fallback Behavior
-
-LifeLink features automatic port conflict resolution:
-
-| Service | Default Port | Fallback Behavior |
-| :--- | :--- | :--- |
-| **Main Application** (Vite + Express) | `3000` | Automatically scans and binds to `3001`–`3004` if busy. |
-| **MySQL Database** | `3306` | Controlled via `DATABASE_URL` in `.env` (e.g. `3307`). |
-| **Drizzle Studio UI** | `4983` | Automatically increments (`4984`, `4985`, etc.) if busy. |
+| Specialty | Doctor Name | Username | Password |
+| :--- | :--- | :--- | :--- |
+| Cardiology | Dr. Rajesh Sharma | `cardiology` | `demo` |
+| Gynecology | Dr. Ananya Iyer | `gynecology` | `demo` |
+| Pediatrics | Dr. Vikram Patel | `pediatrics` | `demo` |
+| Orthopedics | Dr. Suresh Deshmukh | `orthopedics` | `demo` |
+| Neurology | Dr. Meera Kulkarni | `neurology` | `demo` |
+| Dermatology | Dr. Rohan Gupta | `dermatology` | `demo` |
+| Oncology | Dr. Sunita Rao | `oncology` | `demo` |
+| Psychiatry | Dr. Amit Joshi | `psychiatry` | `demo` |
+| Gastroenterology | Dr. Priya Nair | `gastroenterology` | `demo` |
+| Pulmonology | Dr. Sandeep Verma | `pulmonology` | `demo` |
+| Ophthalmology | Dr. Pooja Shah | `ophthalmology` | `demo` |
+| ENT | Dr. Nitin Patil | `ent` | `demo` |
 
 ---
 
-## 📜 Complete Command Reference
+## 📜 Useful Commands
 
-| Command | Action |
+| Command | What it does |
 | :--- | :--- |
-| `npm run dev` | Starts the unified Vite + Express development server with live reload and interactive CLI shortcuts. |
-| `npm run check` | Executes strict TypeScript compiler verification across frontend and backend (`tsc --noEmit`). |
-| `npm test` | Runs the complete unit and integration test suite via Vitest. |
-| `npm run build` | Builds the optimized production frontend client and bundles the backend server with esbuild. |
-| `npm run start` | Boots the compiled production distribution bundle (`NODE_ENV=production node dist/index.js`). |
-| `npm run verify` | Runs TypeScript compilation, full Vitest suite, and production build in a single verification pipeline. |
-| `npm run db:push` | Generates schema snapshots and applies migrations to the target MySQL instance. |
-| `npm run db:studio` | Launches Drizzle Studio visual database inspector on port `4983`. |
+| `npm run dev` | Start the app locally |
+| `npm run check` | Check for TypeScript errors |
+| `npm test` | Run all unit tests |
+| `npm run build` | Build for production |
+| `npm run verify` | Run type check + tests + build all at once |
+| `npm run db:push` | Update database tables after schema changes |
+| `npm run db:studio` | Open a visual UI to browse your database |
 
 ---
 
-## 🔒 Security, Privacy & Compliance Controls
+## 🧭 App Routes (Pages You Can Visit)
 
-* **Zero GPS Coordinate Storage**: The Mumbai Specialist Locator operates entirely in-memory on the client; precise device coordinates are never saved to the database or logged on the server.
-* **User-Confirmed Emergency Triggers**: LifeLink provides one-click triggers for `112` and pre-drafted SOS SMS messages, but never places calls or broadcasts distress messages without explicit patient confirmation.
-* **Strict Session IDOR Prevention**: All queries and mutations in `backend/routers/patient.ts` and `backend/routers/doctor.ts` extract user identity strictly from verified server-side session tokens (`ctx.user.id` or `ctx.user.openId`).
-* **Cryptographic Prescription Signatures**: Prescriptions include tamper-evident SHA-256 integrity reference hashes linking the issuing clinician, patient ID, medication items, and timestamp.
-* **Inactivity Auto-Logout**: Hardens clinical terminals against unattended access by invalidating sessions after 5 minutes of idle time.
+| URL | What's There |
+| :--- | :--- |
+| `/` | Redirects to login |
+| `/login` | Patient login page |
+| `/register` | Patient registration page |
+| `/workspace` | Choose: Patient or Doctor portal |
+| `/patient/dashboard` | Main patient page |
+| `/patient/assessment` | AI symptom checker |
+| `/patient/specialists` | Find doctors on the Mumbai rail map |
+| `/patient/appointments` | Your booked appointments |
+| `/patient/medicines` | Your medicine schedule |
+| `/patient/health-passport` | Your medical profile |
+| `/patient/prescriptions` | Prescriptions from your doctor |
+| `/patient/emergency` | Emergency contacts & 112 button |
+| `/doctor/login` | Doctor login |
+| `/doctor/dashboard` | Doctor's appointment queue |
+| `/doctor/appointments` | Manage patient appointments |
+| `/doctor/prescriptions` | Write & sign prescriptions |
 
 ---
 
-## 👥 Contributors & Maintainers
+## 📚 Docs & Deep Dives
 
-* **Sarthak Mandhare** ([@sarthakmandhare34](https://github.com/sarthakmandhare34)) — Lead Developer & Project Owner
-* **Google** — AI Architectural & Development Partner
+Want to understand the architecture better? Check these out:
+
+| Document | What's Inside |
+| :--- | :--- |
+| [SYSTEM_DIAGRAMS.md](SYSTEM_DIAGRAMS.md) | Architecture diagrams, database relationships, flowcharts |
+| [SECURITY.md](SECURITY.md) | How we keep data safe |
+| [CHANGELOG.md](CHANGELOG.md) | What changed in each version |
+| [CONTRIBUTORS.md](CONTRIBUTORS.md) | How to contribute to the project |
+| [implementation-reports/](implementation-reports/) | Deep technical reports on each system |
+
+---
+
+## 👥 Who Built This?
+
+- **Sarthak Mandhare** ([@sarthakmandhare34](https://github.com/sarthakmandhare34)) — Lead Developer & Project Owner
+- **Google** — AI Partnership (Gemini API)
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is open-source under the [MIT License](LICENSE). Feel free to use, learn from, and build on it!
