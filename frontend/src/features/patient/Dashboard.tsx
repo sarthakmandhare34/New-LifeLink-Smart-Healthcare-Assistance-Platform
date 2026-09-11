@@ -66,14 +66,11 @@ export const PatientDashboard = () => {
   const latestPrescription = prescriptions[0] ?? null;
 
   const cardStyle = {
-    background: '#E6F9FC', // Clinical Aqua background
     padding: 'clamp(16px, 4vw, 24px)',
-    borderRadius: '20px',
-    border: '1px solid #9FFBFF', // Soft border
-    boxShadow: '0 8px 32px rgba(16, 43, 45, 0.04)',
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '16px'
+    gap: '16px',
+    minHeight: '220px',
   };
 
   const iconWrapperStyle = {
@@ -106,7 +103,7 @@ export const PatientDashboard = () => {
         aria-label="Health activity"
       >
         {/* Upcoming Appointment */}
-        <Card style={cardStyle}>
+        <Card className="clinical-glass-card interactive-surface" style={cardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2D9D9C', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Outfit, sans-serif' }}>Upcoming Appointment</h2>
@@ -145,15 +142,16 @@ export const PatientDashboard = () => {
           <Button
             variant="outline"
             size="sm"
+            className="btn-arrow-hover"
             onClick={() => navigate('/patient/appointments')}
-            style={{ alignSelf: 'flex-start', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#00C4CC', color: '#00C4CC', marginTop: 'auto' }}
+            style={{ alignSelf: 'flex-start', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto' }}
           >
             View Appointments <ArrowRight size={14} />
           </Button>
         </Card>
 
         {/* Recent Assessment */}
-        <Card style={cardStyle}>
+        <Card className="clinical-glass-card interactive-surface" style={cardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2D9D9C', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Outfit, sans-serif' }}>Recent Assessment</h2>
@@ -187,8 +185,9 @@ export const PatientDashboard = () => {
           <Button
             variant="outline"
             size="sm"
+            className="btn-arrow-hover"
             onClick={() => navigate('/patient/assessment')}
-            style={{ alignSelf: 'flex-start', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#00C4CC', color: '#00C4CC', marginTop: 'auto' }}
+            style={{ alignSelf: 'flex-start', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto' }}
           >
             {latestAssessment ? 'New Assessment' : 'Start Assessment'} <ArrowRight size={14} />
           </Button>
@@ -201,7 +200,7 @@ export const PatientDashboard = () => {
         aria-label="Medical records"
       >
         {/* Medicines */}
-        <Card style={cardStyle}>
+        <Card className="clinical-glass-card interactive-surface" style={cardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2D9D9C', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Outfit, sans-serif' }}>Medicines</h2>
             <div style={{ ...iconWrapperStyle, background: 'rgba(45, 157, 156, 0.15)', color: '#2D9D9C' }}>
@@ -212,7 +211,7 @@ export const PatientDashboard = () => {
           {medicines.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {medicines.slice(0, 2).map((med, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'rgba(255, 255, 255, 0.5)', borderRadius: '12px', border: '1px solid rgba(0, 244, 255, 0.2)' }}>
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--color-surface-interactive)', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
                   <Pill size={16} color="#00C4CC" />
                   <div>
                     <strong style={{ fontSize: '0.9rem', color: '#102B2D', display: 'block', fontWeight: 700 }}>{med.name}</strong>
@@ -231,15 +230,16 @@ export const PatientDashboard = () => {
           <Button
             variant="outline"
             size="sm"
+            className="btn-arrow-hover"
             onClick={() => navigate('/patient/medicines')}
-            style={{ alignSelf: 'flex-start', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#00C4CC', color: '#00C4CC', marginTop: 'auto' }}
+            style={{ alignSelf: 'flex-start', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto' }}
           >
             Medicine Cabinet <ArrowRight size={14} />
           </Button>
         </Card>
 
         {/* Prescriptions */}
-        <Card style={cardStyle}>
+        <Card className="clinical-glass-card interactive-surface" style={cardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2D9D9C', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Outfit, sans-serif' }}>Prescriptions</h2>
             <div style={{ ...iconWrapperStyle, background: 'rgba(45, 157, 156, 0.15)', color: '#2D9D9C' }}>
@@ -266,8 +266,9 @@ export const PatientDashboard = () => {
           <Button
             variant="outline"
             size="sm"
+            className="btn-arrow-hover"
             onClick={() => navigate('/patient/prescriptions')}
-            style={{ alignSelf: 'flex-start', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#00C4CC', color: '#00C4CC', marginTop: 'auto' }}
+            style={{ alignSelf: 'flex-start', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '6px', marginTop: 'auto' }}
           >
             View Prescriptions <ArrowRight size={14} />
           </Button>

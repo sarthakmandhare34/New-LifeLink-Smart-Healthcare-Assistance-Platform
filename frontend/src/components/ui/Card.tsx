@@ -26,11 +26,12 @@ export const Card: React.FC<CardProps> = ({
     baseClass = 'emergency-panel';
   }
 
-  const interactiveClass = interactive ? 'interactive-surface' : '';
+  const isInteractive = interactive || Boolean(onClick);
+  const interactiveClass = isInteractive ? 'interactive-surface' : '';
   const selectedClass = selected ? 'selected' : '';
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (interactive && (e.key === 'Enter' || e.key === ' ')) {
+    if (isInteractive && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
       if (onClick) onClick(e as any);
     }
@@ -42,8 +43,8 @@ export const Card: React.FC<CardProps> = ({
       style={style}
       onClick={onClick}
       onKeyDown={handleKeyDown}
-      tabIndex={interactive ? 0 : undefined}
-      role={interactive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      role={isInteractive ? 'button' : undefined}
     >
       {children}
     </div>

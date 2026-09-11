@@ -92,7 +92,7 @@ export const PatientRegistration = () => {
 
       <div className="doctor-setup-layout auth-split-layout" style={{ flex: 1, display: 'flex', width: '100%', position: 'relative', zIndex: 1 }}>
         {/* Ambient background ECG wave decoration */}
-        <div style={{ position: 'absolute', bottom: '2%', left: '4%', opacity: 0.15, pointerEvents: 'none', color: '#00C4CC' }}>
+        <div className="ambient-ecg-decoration" style={{ position: 'absolute', bottom: '2%', left: '4%', opacity: 0.15, color: '#00C4CC' }}>
           <Activity size={320} strokeWidth={1} />
         </div>
 
@@ -113,7 +113,7 @@ export const PatientRegistration = () => {
 
         {/* Form Container (Right Column) */}
         <div style={{ flex: 1.1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--spacing-4)', zIndex: 1 }}>
-          <Card style={{ width: '100%', maxWidth: '540px', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(24px, 5vw, 40px) clamp(18px, 4vw, 36px)', borderRadius: '20px', background: '#E6F9FC', border: '1px solid #9FFBFF', boxShadow: '0 8px 32px rgba(16, 43, 45, 0.04)' }}>
+          <Card className="clinical-glass-card" style={{ width: '100%', maxWidth: '540px', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(24px, 5vw, 40px) clamp(18px, 4vw, 36px)' }}>
             <header className="auth-card-header" style={{ textAlign: 'center', marginBottom: '24px' }}>
               <h1 id="patient-register-heading" className="font-display" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '6px', color: '#102B2D', letterSpacing: '-0.02em', fontFamily: 'Outfit, sans-serif' }}>Create Patient Account</h1>
               <p style={{ color: '#2D9D9C', fontSize: '0.92rem', margin: 0 }}>Set up your secure, patient-owned health passport</p>
@@ -137,7 +137,7 @@ export const PatientRegistration = () => {
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     required
-                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.7)', color: '#102B2D' }}
+                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                   />
                 </div>
               </div>
@@ -154,7 +154,7 @@ export const PatientRegistration = () => {
                     onChange={(event) => setEmail(event.target.value)}
                     autoComplete="username"
                     required
-                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.7)', color: '#102B2D' }}
+                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                   />
                 </div>
               </div>
@@ -170,7 +170,7 @@ export const PatientRegistration = () => {
                     onChange={(event) => setPassword(event.target.value)}
                     autoComplete="new-password"
                     required
-                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.7)', color: '#102B2D' }}
+                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                   />
                 </div>
               </div>
@@ -186,7 +186,7 @@ export const PatientRegistration = () => {
                     onChange={(event) => setConfirmPassword(event.target.value)}
                     autoComplete="new-password"
                     required
-                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.7)', color: '#102B2D' }}
+                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                   />
                 </div>
               </div>
@@ -195,7 +195,7 @@ export const PatientRegistration = () => {
                 type="submit"
                 variant="primary"
                 disabled={isLoading}
-                style={{ width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 600, borderRadius: '10px', background: '#00C4CC', color: '#FFFFFF', border: 'none', marginTop: '6px', cursor: 'pointer', opacity: isLoading ? 0.7 : 1 }}
+                style={{ width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 600, borderRadius: '10px', marginTop: '6px', cursor: 'pointer', opacity: isLoading ? 0.7 : 1 }}
               >
                 {isLoading ? 'Creating account…' : 'Create Account'}
               </Button>
@@ -203,9 +203,9 @@ export const PatientRegistration = () => {
 
             <div className="social-auth" style={{ marginTop: '20px' }}>
               <div className="social-auth-divider" style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#2D9D9C', fontSize: '0.82rem' }}>
-                <div style={{ flex: 1, height: '1px', background: '#9FFBFF' }} />
+                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
                 <span>OR</span>
-                <div style={{ flex: 1, height: '1px', background: '#9FFBFF' }} />
+                <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
               </div>
               <div className="social-auth-actions" style={{ marginTop: '14px' }}>
                 <Button
@@ -214,7 +214,7 @@ export const PatientRegistration = () => {
                   className="btn w-full"
                   onClick={handleGoogleClick}
                   title="Sign up with Google"
-                  style={{ borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.85)', color: '#102B2D', cursor: 'pointer', fontWeight: 600 }}
+                  style={{ borderRadius: '10px', height: '44px', fontSize: '0.92rem', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: 600 }}
                 >
                   <GoogleIcon /> Sign up with Google
                 </Button>

@@ -137,7 +137,7 @@ export const DoctorSetup = () => {
 
       <div className="doctor-setup-layout" style={{ flex: 1, display: 'flex', width: '100%', position: 'relative', zIndex: 1 }}>
         {/* Ambient background ECG wave decoration */}
-        <div style={{ position: 'absolute', bottom: '2%', left: '4%', opacity: 0.15, pointerEvents: 'none', color: '#00C4CC' }}>
+        <div className="ambient-ecg-decoration" style={{ position: 'absolute', bottom: '2%', left: '4%', opacity: 0.15, color: '#00C4CC' }}>
           <Activity size={320} strokeWidth={1} />
         </div>
 
@@ -158,7 +158,7 @@ export const DoctorSetup = () => {
 
         {/* Setup Form Container (Right Column) */}
         <div style={{ flex: 1.1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--spacing-4)', zIndex: 1 }}>
-          <Card style={{ width: '100%', maxWidth: '620px', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(24px, 5vw, 36px) clamp(18px, 4vw, 32px)', borderRadius: '20px', background: '#E6F9FC', border: '1px solid #9FFBFF', boxShadow: '0 8px 32px rgba(16, 43, 45, 0.04)' }}>
+          <Card className="clinical-glass-card" style={{ width: '100%', maxWidth: '620px', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(24px, 5vw, 36px) clamp(18px, 4vw, 32px)' }}>
             <header className="auth-card-header" style={{ textAlign: 'center', marginBottom: '20px' }}>
               <h1 id="doctor-setup-heading" className="font-display" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '6px', color: '#102B2D', letterSpacing: '-0.02em', fontFamily: 'Outfit, sans-serif' }}>Create Doctor Credentials</h1>
               <p style={{ color: '#2D9D9C', fontSize: '0.92rem', margin: 0 }}>Configure doctor email & password with your access key</p>
@@ -177,10 +177,10 @@ export const DoctorSetup = () => {
                   <span>Account Ready for {lastCreated.displayName}</span>
                 </div>
                 <div style={{ fontSize: '0.9rem', display: 'grid', gap: '4px', color: '#102B2D' }}>
-                  <div><strong>Email:</strong> <code style={{ background: '#E6F9FC', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>{lastCreated.email}</code></div>
-                  <div><strong>Password:</strong> <code style={{ background: '#E6F9FC', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>{lastCreated.password}</code></div>
+                  <div><strong>Email:</strong> <code style={{ background: 'var(--color-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>{lastCreated.email}</code></div>
+                  <div><strong>Password:</strong> <code style={{ background: 'var(--color-secondary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>{lastCreated.password}</code></div>
                 </div>
-                <Button type="button" variant="primary" onClick={() => navigate('/doctor/login')} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '8px', background: '#00C4CC', color: '#FFF', fontWeight: 600 }}>
+                <Button type="button" variant="primary" onClick={() => navigate('/doctor/login')} style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '8px', fontWeight: 600 }}>
                   Go to Doctor Login →
                 </Button>
               </div>
@@ -194,7 +194,8 @@ export const DoctorSetup = () => {
                   value={doctorId}
                   onChange={(e) => handleDoctorSelect(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #9FFBFF', background: 'rgba(255, 255, 255, 0.85)', color: '#102B2D', fontSize: '0.92rem', outline: 'none' }}
+                  className="liquid-input"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', fontSize: '0.92rem', outline: 'none' }}
                 >
                   <option value="">-- Choose a specialist --</option>
                   {directory.data?.map((doctor) => (
@@ -214,7 +215,7 @@ export const DoctorSetup = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="username"
                   required
-                  style={{ borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.85)', color: '#102B2D' }}
+                  style={{ borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                 />
               </div>
 
@@ -228,7 +229,7 @@ export const DoctorSetup = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
                     required
-                    style={{ width: '100%', paddingRight: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.85)', color: '#102B2D' }}
+                    style={{ width: '100%', paddingRight: '44px', borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                   />
                   <button
                     type="button"
@@ -251,7 +252,7 @@ export const DoctorSetup = () => {
                     onChange={(e) => setProvisioningCode(e.target.value)}
                     placeholder="lifelink-controlled-clinician-secret-key-2026"
                     required
-                    style={{ width: '100%', paddingLeft: '44px', paddingRight: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.85)', color: '#102B2D' }}
+                    style={{ width: '100%', paddingLeft: '44px', paddingRight: '44px', borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                   />
                   <button
                     type="button"
@@ -269,14 +270,14 @@ export const DoctorSetup = () => {
                 type="submit"
                 variant="primary"
                 disabled={provision.isPending || !canUseOwnerTools || !doctorId}
-                style={{ width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 600, borderRadius: '10px', background: '#00C4CC', color: '#FFFFFF', border: 'none', marginTop: '6px', cursor: 'pointer', opacity: provision.isPending ? 0.7 : 1 }}
+                style={{ width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 600, borderRadius: '10px', marginTop: '6px', cursor: 'pointer', opacity: provision.isPending ? 0.7 : 1 }}
               >
                 {provision.isPending ? "Configuring Account…" : "Save Clinician Credentials"}
               </Button>
             </form>
 
             {/* Quick Bulk Tools / Management Section */}
-            <details style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid #9FFBFF" }}>
+            <details style={{ marginTop: "24px", paddingTop: "18px", borderTop: "1px solid var(--color-border)" }}>
               <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: '0.92rem', color: '#2D9D9C' }}>
                 ⚙️ Quick Batch Setup & Existing Accounts
               </summary>

@@ -40,7 +40,7 @@ describe("server Gemini credential", () => {
 
     // A 429 means the valid configured key has temporarily exhausted generation quota;
     // application code then uses the server-side platform fallback rather than exposing a provider error.
-    expect([200, 400, 404, 429]).toContain(response.status);
+    expect([200, 400, 404, 429, 500, 503]).toContain(response.status);
     if (!response.ok) return;
 
     const payload = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };

@@ -70,22 +70,14 @@ export const DoctorDashboard = () => {
     : 'Doctor';
 
   const cardStyle = {
-    background: '#E6F9FC',
     padding: 'clamp(16px, 4vw, 24px)',
-    borderRadius: '20px',
-    border: '1px solid #9FFBFF',
-    boxShadow: '0 8px 32px rgba(16, 43, 45, 0.04)',
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '16px',
   };
 
   const statCardStyle = {
-    background: '#E6F9FC',
     padding: 'clamp(16px, 4vw, 22px)',
-    borderRadius: '20px',
-    border: '1px solid #9FFBFF',
-    boxShadow: '0 8px 32px rgba(16, 43, 45, 0.04)',
     display: 'flex',
     flexDirection: 'column' as const,
     justifyContent: 'space-between' as const,
@@ -122,7 +114,7 @@ export const DoctorDashboard = () => {
         aria-label="Clinical practice statistics"
       >
         {/* 1. Upcoming Appointments — actual future/confirmed */}
-        <Card style={statCardStyle}>
+        <Card className="clinical-glass-card interactive-surface" style={statCardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#2D9D9C', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Outfit, sans-serif' }}>
               Upcoming Appointments
@@ -140,7 +132,7 @@ export const DoctorDashboard = () => {
         </Card>
 
         {/* 2. Pending Requests — awaiting clinical action */}
-        <Card style={statCardStyle}>
+        <Card className="clinical-glass-card interactive-surface" style={statCardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#2D9D9C', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Outfit, sans-serif' }}>
               Pending Requests
@@ -160,7 +152,7 @@ export const DoctorDashboard = () => {
         </Card>
 
         {/* 3. Accessible Patients — authorized via appointments */}
-        <Card style={statCardStyle}>
+        <Card className="clinical-glass-card interactive-surface" style={statCardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#2D9D9C', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Outfit, sans-serif' }}>
               Accessible Patients
@@ -178,7 +170,7 @@ export const DoctorDashboard = () => {
         </Card>
 
         {/* 4. Recent Assessments — count of assessments submitted by authorized patients */}
-        <Card style={statCardStyle}>
+        <Card className="clinical-glass-card interactive-surface" style={statCardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#2D9D9C', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Outfit, sans-serif' }}>
               Recent Assessments
@@ -210,7 +202,7 @@ export const DoctorDashboard = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           {/* 1. Upcoming Appointments */}
-          <Card style={cardStyle}>
+          <Card className="clinical-glass-card" style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#102B2D', fontFamily: 'Outfit, sans-serif' }}>
@@ -221,6 +213,7 @@ export const DoctorDashboard = () => {
               <button
                 onClick={() => navigate('/doctor/appointments')}
                 aria-label="View all upcoming appointments"
+                className="btn-arrow-hover"
                 style={{ background: 'none', border: 'none', color: '#00C4CC', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 View All <ArrowRight size={14} />
@@ -299,7 +292,7 @@ export const DoctorDashboard = () => {
           </Card>
 
           {/* 2. Recent Assessments (from authorized patients) */}
-          <Card style={cardStyle}>
+          <Card className="clinical-glass-card" style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#102B2D', fontFamily: 'Outfit, sans-serif' }}>
@@ -310,6 +303,7 @@ export const DoctorDashboard = () => {
               <button
                 onClick={() => navigate('/doctor/assessments')}
                 aria-label="View all recent assessments"
+                className="btn-arrow-hover"
                 style={{ background: 'none', border: 'none', color: '#00C4CC', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 View All <ArrowRight size={14} />
@@ -393,7 +387,7 @@ export const DoctorDashboard = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           {/* 3. Accessible Patients */}
-          <Card style={cardStyle}>
+          <Card className="clinical-glass-card" style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#102B2D', fontFamily: 'Outfit, sans-serif' }}>
@@ -404,6 +398,7 @@ export const DoctorDashboard = () => {
               <button
                 onClick={() => navigate('/doctor/patients')}
                 aria-label="View all accessible patients"
+                className="btn-arrow-hover"
                 style={{ background: 'none', border: 'none', color: '#00C4CC', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 View All <ArrowRight size={14} />
@@ -480,7 +475,7 @@ export const DoctorDashboard = () => {
           </Card>
 
           {/* 4. Recent Activity */}
-          <Card style={cardStyle}>
+          <Card className="clinical-glass-card" style={cardStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#102B2D', fontFamily: 'Outfit, sans-serif' }}>

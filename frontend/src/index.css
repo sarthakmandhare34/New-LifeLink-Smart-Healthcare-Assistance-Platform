@@ -849,6 +849,25 @@ dialog.popup {
   overflow: hidden;
   border: 1px solid transparent;
   box-shadow: 0 8px 20px rgba(45, 58, 142, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  transition: none;
+}
+
+.btn:hover:not(:disabled)::after {
+  left: 160%;
+  transition: left 0.75s ease-in-out;
 }
 
 .btn-primary {
@@ -858,9 +877,9 @@ dialog.popup {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #00B2B8 0%, #00A3A8 48%, #258382 100%) !important;
-  box-shadow: 0 14px 28px rgba(0, 196, 204, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #00D5DE 0%, #00B2B8 48%, #258382 100%) !important;
+  box-shadow: 0 16px 32px rgba(0, 196, 204, 0.42), 0 0 20px rgba(0, 196, 204, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  transform: translateY(-2px);
 }
 
 .btn-secondary,
@@ -880,7 +899,30 @@ dialog.popup {
     linear-gradient(rgba(230, 249, 252, 0.95), rgba(200, 243, 247, 0.8)) padding-box,
     linear-gradient(117deg, rgba(0, 196, 204, 0.6), rgba(45, 157, 156, 0.5), rgba(0, 196, 204, 0.4)) border-box;
   color: #00878C;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0, 196, 204, 0.22), 0 0 14px rgba(0, 196, 204, 0.15);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%) !important;
+  box-shadow: 0 10px 22px rgba(220, 38, 38, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  color: #FFFFFF !important;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #EF4444 0%, #B91C1C 100%) !important;
+  box-shadow: 0 14px 30px rgba(220, 38, 38, 0.42), 0 0 16px rgba(220, 38, 38, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-arrow-hover svg,
+.btn:hover svg.btn-icon-right {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-arrow-hover:hover svg,
+.btn:hover svg.btn-icon-right {
+  transform: translateX(4px);
 }
 
 .liquid-input,
@@ -889,18 +931,29 @@ textarea,
 select {
   border: 1px solid transparent !important;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.35)) padding-box,
+    linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.45)) padding-box,
     linear-gradient(117deg, rgba(255, 255, 255, 0.87), rgba(136, 158, 220, 0.31), rgba(255, 255, 255, 0.75)) border-box !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.64), 0 5px 14px rgba(36, 47, 117, 0.05);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
+  transition: border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-input:hover:not(:focus),
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):hover:not(:focus),
+textarea:hover:not(:focus),
+select:hover:not(:focus) {
+  border-color: rgba(0, 196, 204, 0.45) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 6px 16px rgba(0, 196, 204, 0.08);
 }
 
 .liquid-input:focus,
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
 textarea:focus,
 select:focus {
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  border-color: #00C4CC !important;
+  box-shadow: 0 0 0 3.5px rgba(0, 196, 204, 0.3), 0 8px 24px rgba(0, 196, 204, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
+  outline: none;
 }
 
 .app-sidebar,
@@ -1002,6 +1055,12 @@ dialog.popup::backdrop {
   color: #FFFFFF !important;
 }
 
+:root[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00E5EE 0%, #00B2B8 100%) !important;
+  box-shadow: 0 16px 34px rgba(0, 196, 204, 0.48), 0 0 24px rgba(0, 196, 204, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  transform: translateY(-2px);
+}
+
 :root[data-theme="dark"] .btn-secondary,
 :root[data-theme="dark"] .btn-outline {
   background: linear-gradient(rgba(16, 43, 45, 0.85), rgba(10, 28, 30, 0.75)) padding-box,
@@ -1014,6 +1073,8 @@ dialog.popup::backdrop {
   background: linear-gradient(rgba(20, 55, 58, 0.95), rgba(14, 38, 40, 0.85)) padding-box,
     linear-gradient(117deg, rgba(0, 196, 204, 0.6), rgba(45, 157, 156, 0.5), rgba(0, 196, 204, 0.4)) border-box;
   color: #00C4CC;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0, 196, 204, 0.25), 0 0 16px rgba(0, 196, 204, 0.18);
 }
 
 :root[data-theme="dark"] .liquid-input,
@@ -1024,6 +1085,14 @@ dialog.popup::backdrop {
   background: linear-gradient(rgba(22, 29, 65, 0.92), rgba(16, 22, 53, 0.82)) padding-box,
     linear-gradient(117deg, rgba(163, 181, 255, 0.28), rgba(93, 130, 242, 0.33), rgba(125, 211, 252, 0.18)) border-box !important;
   box-shadow: inset 0 1px 0 rgba(220, 230, 255, 0.1), 0 7px 18px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-theme="dark"] .liquid-input:focus,
+:root[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+:root[data-theme="dark"] textarea:focus,
+:root[data-theme="dark"] select:focus {
+  border-color: #00C4CC !important;
+  box-shadow: 0 0 0 3.5px rgba(0, 196, 204, 0.35), 0 8px 24px rgba(0, 196, 204, 0.2), inset 0 1px 0 rgba(220, 230, 255, 0.15) !important;
 }
 
 :root[data-theme="dark"] input::placeholder,
@@ -2012,6 +2081,111 @@ dialog.popup {
   .doctor-content {
     padding-left: var(--spacing-2);
     padding-right: var(--spacing-2);
+  }
+}
+
+/* Enhanced Clinical Glass Surfaces & Micro-Interactions */
+.clinical-glass-card {
+  background: linear-gradient(145deg, rgba(230, 249, 252, 0.94), rgba(240, 252, 254, 0.88)) padding-box,
+              linear-gradient(117deg, rgba(255, 255, 255, 0.98), rgba(0, 196, 204, 0.38), rgba(159, 251, 255, 0.85)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(16, 43, 45, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clinical-glass-card.interactive-surface:hover,
+.card.interactive-surface:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 50px rgba(0, 196, 204, 0.18), 0 8px 24px rgba(16, 43, 45, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+  border-color: rgba(0, 196, 204, 0.55) !important;
+}
+
+.clinical-glass-card.interactive-surface:active,
+.card.interactive-surface:active {
+  transform: translateY(-1px) scale(0.995);
+}
+
+:root[data-theme="dark"] .clinical-glass-card {
+  background: linear-gradient(145deg, rgba(16, 32, 54, 0.92), rgba(10, 20, 36, 0.88)) padding-box,
+              linear-gradient(117deg, rgba(45, 157, 156, 0.45), rgba(0, 196, 204, 0.35), rgba(255, 255, 255, 0.12)) border-box !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+:root[data-theme="dark"] .clinical-glass-card.interactive-surface:hover,
+:root[data-theme="dark"] .card.interactive-surface:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 196, 204, 0.65) !important;
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.65), 0 0 32px rgba(0, 196, 204, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Ambient Medical Wave Decoration */
+@keyframes ecgPulseLine {
+  0%, 100% {
+    opacity: 0.14;
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    opacity: 0.34;
+    transform: scale(1.02);
+    filter: drop-shadow(0 0 18px rgba(0, 196, 204, 0.55));
+  }
+}
+
+.ambient-ecg-decoration {
+  animation: ecgPulseLine 5.5s ease-in-out infinite;
+  transform-origin: bottom left;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* Status Pulse Indicators */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.35); }
+}
+
+.pulse-badge {
+  display: inline-flex;
+  align-items: center;
+}
+
+.pulse-badge::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+  margin-right: 6px;
+  animation: pulseDot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Smooth clinical scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 196, 204, 0.25);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 196, 204, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-ecg-decoration,
+  .pulse-badge::before {
+    animation: none !important;
   }
 }
 

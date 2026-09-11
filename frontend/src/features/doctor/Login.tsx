@@ -52,7 +52,7 @@ export const DoctorLogin = () => {
 
       <div className="doctor-setup-layout auth-split-layout" style={{ flex: 1, display: 'flex', width: '100%', position: 'relative', zIndex: 1 }}>
         {/* Ambient background ECG wave decoration */}
-        <div style={{ position: 'absolute', bottom: '2%', left: '4%', opacity: 0.15, pointerEvents: 'none', color: '#00C4CC' }}>
+        <div className="ambient-ecg-decoration" style={{ position: 'absolute', bottom: '2%', left: '4%', opacity: 0.15, color: '#00C4CC' }}>
           <Activity size={320} strokeWidth={1} />
         </div>
 
@@ -73,7 +73,7 @@ export const DoctorLogin = () => {
 
         {/* Form Container (Right Column) */}
         <div style={{ flex: 1.1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 'var(--spacing-4)', zIndex: 1 }}>
-          <Card style={{ width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(24px, 5vw, 40px) clamp(18px, 4vw, 36px)', borderRadius: '20px', background: '#E6F9FC', border: '1px solid #9FFBFF', boxShadow: '0 8px 32px rgba(16, 43, 45, 0.04)' }}>
+          <Card className="clinical-glass-card" style={{ width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', padding: 'clamp(24px, 5vw, 40px) clamp(18px, 4vw, 36px)' }}>
             <header className="auth-card-header" style={{ textAlign: 'center', marginBottom: '24px' }}>
               <h1 id="doctor-login-heading" className="font-display" style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '6px', color: '#102B2D', letterSpacing: '-0.02em', fontFamily: 'Outfit, sans-serif' }}>Doctor Sign In</h1>
               <p style={{ color: '#2D9D9C', fontSize: '0.92rem', margin: 0 }}>Review assigned appointments and patient context</p>
@@ -98,7 +98,7 @@ export const DoctorLogin = () => {
                     onChange={(event) => setEmail(event.target.value)}
                     autoComplete="email"
                     required
-                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.7)', color: '#102B2D' }}
+                    style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                   />
                 </div>
                 <small style={{ fontSize: '0.74rem', color: '#2D9D9C' }}>Must be your official @lifelink.com clinical work email.</small>
@@ -115,7 +115,7 @@ export const DoctorLogin = () => {
                     onChange={(event) => setPassword(event.target.value)}
                     autoComplete="current-password"
                     required
-                    style={{ width: '100%', paddingLeft: '44px', paddingRight: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.7)', color: '#102B2D' }}
+                    style={{ width: '100%', paddingLeft: '44px', paddingRight: '44px', borderRadius: '10px', height: '44px', fontSize: '0.92rem' }}
                   />
                   <button
                     type="button"
@@ -132,7 +132,7 @@ export const DoctorLogin = () => {
                 type="submit"
                 variant="primary"
                 disabled={login.isPending}
-                style={{ width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 600, borderRadius: '10px', background: '#00C4CC', color: '#FFFFFF', border: 'none', marginTop: '4px', cursor: 'pointer', opacity: login.isPending ? 0.7 : 1 }}
+                style={{ width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 600, borderRadius: '10px', marginTop: '4px', cursor: 'pointer', opacity: login.isPending ? 0.7 : 1 }}
               >
                 {login.isPending ? 'Signing in…' : 'Sign In'}
               </Button>
@@ -147,7 +147,7 @@ export const DoctorLogin = () => {
                 >
                   Clinician setup
                 </button>
-                <span style={{ color: '#9FFBFF' }}>|</span>
+                <span style={{ color: 'var(--color-border)' }}>|</span>
                 <button
                   type="button"
                   onClick={() => navigate('/doctor/reset')}
@@ -163,7 +163,7 @@ export const DoctorLogin = () => {
                   onClick={() => navigate('/login')}
                   style={{ background: 'none', border: 'none', color: '#00C4CC', fontWeight: 600, cursor: 'pointer', padding: 0 }}
                 >
-                  Patient login →
+                  Patient sign in
                 </button>
               </div>
             </div>
