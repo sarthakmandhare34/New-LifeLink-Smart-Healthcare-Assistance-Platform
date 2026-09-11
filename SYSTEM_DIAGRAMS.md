@@ -52,13 +52,17 @@ LifeLink-Smart-Healthcare-Assistance-Platform/
 │       │   └── Medicines/                 <-- [EDIT] Medicine cabinet & schedule tracker
 │       ├── doctor/
 │       │   ├── Dashboard.tsx              <-- [EDIT] Doctor appointments queue & clinical statistics
+│       │   ├── Setup.tsx                  <-- [EDIT] Specialist onboarding & consultation schedule
+│       │   ├── Login.tsx                  <-- [EDIT] Clinician credential authentication (split layout)
+│       │   ├── ResetPassword.tsx          <-- [EDIT] Clinician password recovery workflow (split layout)
 │       │   ├── Patients/                  <-- [EDIT] Patient roster & medical history view
 │       │   ├── Consultations/             <-- [EDIT] Clinical consultation & notes workspace
 │       │   └── Prescriptions/             <-- [EDIT] Digital prescription authoring & SHA-256 signer
 │       └── entry/
-│           ├── Login.tsx                  <-- [EDIT] Patient authentication
-│           ├── Register.tsx               <-- [EDIT] Patient registration
+│           ├── Login.tsx                  <-- [EDIT] Patient login (credentials & Google OAuth, split layout)
+│           ├── Register.tsx               <-- [EDIT] Patient registration (credentials & Google OAuth, split layout)
 │           └── WorkspaceSelector.tsx      <-- [EDIT] Portal chooser (Patient vs Doctor Workspace)
+
 │
 ├── 🌐 ISOMORPHIC SHARED DOMAIN LAYER
 │   ├── shared/biologicalValidation.ts     <-- [READ] Deterministic biological consistency rules
@@ -68,7 +72,9 @@ LifeLink-Smart-Healthcare-Assistance-Platform/
 │
 └── 🛠️ RUNTIME & SETUP SCRIPTS
     ├── scripts/init-db.ts                 <-- [RUN] Idempotently provisions 'lifelink' database in MySQL
-    ├── scripts/seed-doctors.ts            <-- [RUN] Resets test patients & seeds 12 Mumbai specialist accounts
+    ├── scripts/seed-doctors.ts            <-- [RUN] Seeds 12 Mumbai specialist work accounts
+    ├── scripts/sync-doctors.ts            <-- [RUN] Audits & synchronizes 12 doctor accounts in MySQL
+    ├── scripts/clear-users.ts             <-- [RUN] Atomically wipes all user records and history
     └── scripts/dev.mjs                    <-- [RUN] Development runtime orchestrator (Vite on 5173, Express on 4000 with fallbacks)
 ```
 

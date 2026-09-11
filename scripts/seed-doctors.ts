@@ -34,46 +34,59 @@ async function resetAndSeedDatabase() {
 
   // 1. Create Patient Accounts with email, username, and password
   console.log("\nSeeding Patient Accounts with username, email, and password...");
-  const patientPassword = "Password123!";
-  const patientPasswordHash = await hashPatientPassword(patientPassword);
 
   const samplePatients = [
-    { username: "patient", name: "Demo Patient", email: "patient@lifelink.com" },
-    { username: "sarthak", name: "Sarthak Mishra", email: "sarthak@lifelink.com" },
-    { username: "aarav", name: "Aarav Sharma", email: "aarav.sharma@lifelink.com" },
-    { username: "priya", name: "Priya Patel", email: "priya.patel@lifelink.com" },
+    { username: "patient", name: "Demo Patient", email: "patient@lifelink.com", password: "patient@lifelink" },
+    { username: "sarthak", name: "Sarthak Mishra", email: "sarthak@lifelink.com", password: "sarthak@lifelink" },
+    { username: "aarav", name: "Aarav Sharma", email: "aarav.sharma@lifelink.com", password: "aarav@lifelink" },
+    { username: "priya", name: "Priya Patel", email: "priya.patel@lifelink.com", password: "priya@lifelink" },
   ];
 
   const seededPatients: { Username: string; Email: string; Password: string; Role: string }[] = [];
 
   for (const patient of samplePatients) {
+    const passwordHash = await hashPatientPassword(patient.password);
     const user = await createNativePatient({
       name: patient.name,
       email: patient.email,
-      passwordHash: patientPasswordHash,
+      passwordHash,
     });
     if (user) {
       seededPatients.push({
         Username: patient.username,
         Email: patient.email,
-        Password: patientPassword,
+        Password: patient.password,
         Role: "patient",
       });
     }
   }
 
   // 2. Create Doctor Accounts with email and password only (consistent naming convention)
-  console.log("\nSeeding Doctor Accounts with email and password only (consistent naming convention)...");
-  const doctorPassword = "demo";
-  const doctorPasswordHash = await hashPatientPassword(doctorPassword);
+  console.log("\nSeeding Doctor Accounts with clean emails and identical simple password pattern...");
+
+  const SPECIALTY_PASSWORDS: Record<string, { short: string; password: string }> = {
+    cardiology: { short: "cardio", password: "cardio@lifelink" },
+    orthopedics: { short: "ortho", password: "ortho@lifelink" },
+    dermatology: { short: "derma", password: "derma@lifelink" },
+    neurology: { short: "neuro", password: "neuro@lifelink" },
+    pediatrics: { short: "pedia", password: "pedia@lifelink" },
+    generalpractice: { short: "general", password: "general@lifelink" },
+    ophthalmology: { short: "ophthal", password: "ophthal@lifelink" },
+    gastroenterology: { short: "gastro", password: "gastro@lifelink" },
+    psychiatry: { short: "psych", password: "psych@lifelink" },
+    endocrinology: { short: "endo", password: "endo@lifelink" },
+    pulmonology: { short: "pulmo", password: "pulmo@lifelink" },
+    gynecology: { short: "gynae", password: "gynae@lifelink" },
+  };
 
   const seededDoctors: { Specialty: string; Email: string; Password: string; "Alias Login": string }[] = [];
 
   for (const doctor of mockDoctorDirectory) {
-    // Consistent naming convention: lowercase specialty name ending in @lifelink.com
-    // e.g. pediatrics@lifelink.com, cardiology@lifelink.com, dermatology@lifelink.com
     const specialtySlug = doctor.specialty.toLowerCase().replace(/[^a-z]/g, "");
     const doctorEmail = `${specialtySlug}@lifelink.com`;
+    const config = SPECIALTY_PASSWORDS[specialtySlug] || { short: specialtySlug, password: `${specialtySlug}@lifelink` };
+    const doctorPassword = config.password;
+    const doctorPasswordHash = await hashPatientPassword(doctorPassword);
 
     try {
       await createSyntheticDoctorCredential({
@@ -86,7 +99,7 @@ async function resetAndSeedDatabase() {
         Specialty: doctor.specialty,
         Email: doctorEmail,
         Password: doctorPassword,
-        "Alias Login": specialtySlug === "pediatrics" ? "pediatrician@lifelink.com or pediatrics" : specialtySlug,
+        "Alias Login": `${config.short}@lifelink.com or ${config.short}`,
       });
     } catch (e: any) {
       console.error(`Failed to seed ${doctor.name}: ${e.message}`);
@@ -94,16 +107,16 @@ async function resetAndSeedDatabase() {
   }
 
   console.log("\n========================================================");
-  console.log("   LIFELINK — DATABASE USER RESET & SEEDING REPORT");
+  console.log("   LIFELINK — FRESH DATABASE RESET & SEEDING REPORT");
   console.log("========================================================\n");
 
   console.log("--- PATIENT ACCOUNTS (Email, Username & Password) ---");
   console.table(seededPatients);
-  console.log("👉 Login at http://localhost:3000/login using any Email or Username above.\n");
+  console.log("👉 Login at http://localhost:5173/login using any Email or Username above.\n");
 
-  console.log("--- DOCTOR ACCOUNTS (Email & Password Only) ---");
+  console.log("--- DOCTOR ACCOUNTS (Email & Password) ---");
   console.table(seededDoctors);
-  console.log("👉 Login at http://localhost:3000/doctor/login using any Doctor Email above (e.g. pediatrics@lifelink.com or pediatrician@lifelink.com) with password 'demo'.\n");
+  console.log("👉 Login at http://localhost:5173/doctor/login using any Doctor Email and Password above.\n");
 
   process.exit(0);
 }

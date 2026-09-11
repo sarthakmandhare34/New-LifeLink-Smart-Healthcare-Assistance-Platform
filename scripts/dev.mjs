@@ -105,7 +105,8 @@ async function startProcesses() {
   const childEnv = { 
     ...devEnv, 
     PORT: String(API_PORT), 
-    VITE_API_PORT: String(API_PORT) 
+    VITE_API_PORT: String(API_PORT),
+    BROWSER: process.env.BROWSER || "chrome",
   };
 
   const backendCmd = "cross-env NODE_ENV=development tsx watch backend/_core/index.ts";

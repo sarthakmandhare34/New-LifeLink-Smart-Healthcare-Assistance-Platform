@@ -6,7 +6,7 @@ import { Input } from "../../components/ui/Input";
 import { LifeLinkLogo } from "../../components/brand/LifeLinkLogo";
 import { EntryThemeToggle } from "../../components/EntryThemeToggle";
 import { trpc } from "../../lib/trpc";
-import { Activity, Lock, User as UserIcon, Eye, EyeOff, Stethoscope, ShieldCheck, Shield } from 'lucide-react';
+import { Activity, Lock, Mail, Eye, EyeOff, Stethoscope, ShieldCheck, Shield } from 'lucide-react';
 
 export const DoctorLogin = () => {
   const navigate = useNavigate();
@@ -87,20 +87,21 @@ export const DoctorLogin = () => {
 
             <form onSubmit={handleLogin} className="auth-form" style={{ display: 'grid', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label htmlFor="doctor-email" style={{ fontWeight: 600, fontSize: '0.88rem', color: '#102B2D' }}>Doctor Email</label>
+                <label htmlFor="doctor-email" style={{ fontWeight: 600, fontSize: '0.88rem', color: '#102B2D' }}>Clinician Work Email</label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <UserIcon size={18} style={{ position: 'absolute', left: '14px', color: '#2D9D9C', pointerEvents: 'none' }} />
+                  <Mail size={18} style={{ position: 'absolute', left: '14px', color: '#2D9D9C', pointerEvents: 'none' }} />
                   <Input
                     id="doctor-email"
-                    type="text"
-                    placeholder="e.g. pediatrics@lifelink.com or cardiology@lifelink.com"
+                    type="email"
+                    placeholder="e.g. cardiology@lifelink.com or orthopedics@lifelink.com"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    autoComplete="username"
+                    autoComplete="email"
                     required
                     style={{ width: '100%', paddingLeft: '44px', borderRadius: '10px', height: '44px', border: '1px solid #9FFBFF', fontSize: '0.92rem', background: 'rgba(255, 255, 255, 0.7)', color: '#102B2D' }}
                   />
                 </div>
+                <small style={{ fontSize: '0.74rem', color: '#2D9D9C' }}>Must be your official @lifelink.com clinical work email.</small>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

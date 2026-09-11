@@ -31,7 +31,7 @@ Here's what it does in simple terms:
 ### 👤 As a Patient
 | Feature | What it does |
 | :--- | :--- |
-| **Sign Up / Log In** | Create your account and access your personal health dashboard |
+| **Sign Up / Log In** | Create your account with email/password or one-click Google OAuth (exclusive to Patient Portal) |
 | **AI Symptom Checker** | Describe what you're feeling — AI tells you urgency (Low / Moderate / Emergency) and which doctor to see |
 | **Health Passport** | Store your blood group, chronic conditions (e.g. diabetes), and emergency contacts |
 | **Medicine Cabinet** | Track all your medicines — names, dosage, how often to take them |
@@ -43,7 +43,7 @@ Here's what it does in simple terms:
 ### 🩺 As a Doctor
 | Feature | What it does |
 | :--- | :--- |
-| **Doctor Login** | Separate login from patients — login at `/workspace` |
+| **Doctor Login** | Separate credential-only login from patients — login at `/doctor/login` or `/workspace` |
 | **View Appointments** | See all patient bookings waiting for your approval |
 | **Patient History** | Look at a patient's full medical record before the consultation |
 | **Write Prescriptions** | Add medicines, dosages, and notes — it auto-syncs to the patient's app |
@@ -55,6 +55,8 @@ Here's what it does in simple terms:
 
 - **Auto Logout**: If you don't touch the screen for **5 minutes**, the app logs you out automatically (important for hospital computers that others might use)
 - **Separate Doctor & Patient Sessions**: A doctor and patient can be logged in at the same time in the same browser — without mixing up their data
+- **Strict Role & OAuth Boundaries**: Google Sign-In is exclusively reserved for the Patient Portal. Clinicians must use verified healthcare credentials to prevent third-party role escalation.
+- **Unified Clinical Split Layout**: Standardized 2-column aesthetic across `/login`, `/register`, `/doctor/login`, and `/doctor/reset` with ambient ECG waves, left branding panels, and trust badges.
 - **Encrypted Passwords**: Passwords are stored safely using bcrypt hashing (never stored as plain text)
 - **Tamper-proof Prescriptions**: Each prescription has a unique SHA-256 digital signature so no one can fake or modify it
 
@@ -277,9 +279,15 @@ DATABASE_URL="mysql://root:yourpassword@localhost:3306/lifelink"
 # Make up a long random string (at least 32 characters)
 JWT_SECRET="any-long-random-string-you-make-up-here"
 
-# Your Google Gemini API key
+# Your Google Gemini API key (required for AI triage)
 GEMINI_API_KEY="paste-your-gemini-api-key-here"
+
+# Google OAuth Credentials (Optional: enables Patient Google Sign-In & Sign-Up)
+GOOGLE_OAUTH_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_OAUTH_CLIENT_SECRET="your-google-client-secret"
+AUTH_PUBLIC_BASE_URL="http://localhost:5173"
 ```
+
 
 ### Step 4: Set Up the Database
 ```bash
@@ -304,24 +312,26 @@ Then open **[http://localhost:5173](http://localhost:5173)** in your browser!
 
 ---
 
-## 🩺 Test Doctor Accounts
+## 🩺 Doctor Work Accounts
 
-When the app starts, 12 doctor accounts are already loaded. You can log into any of them at `/workspace` → **Doctor Login**.
+Doctor accounts are provisioned via `/doctor/setup` using the master access key `lifelink-controlled-clinician-secret-key-2026`. Clinicians strictly log in using their official work email at `/doctor/login` or `/workspace` → **Doctor Login**.
 
-| Specialty | Doctor Name | Username | Password |
-| :--- | :--- | :--- | :--- |
-| Cardiology | Dr. Rajesh Sharma | `cardiology` | `demo` |
-| Gynecology | Dr. Ananya Iyer | `gynecology` | `demo` |
-| Pediatrics | Dr. Vikram Patel | `pediatrics` | `demo` |
-| Orthopedics | Dr. Suresh Deshmukh | `orthopedics` | `demo` |
-| Neurology | Dr. Meera Kulkarni | `neurology` | `demo` |
-| Dermatology | Dr. Rohan Gupta | `dermatology` | `demo` |
-| Oncology | Dr. Sunita Rao | `oncology` | `demo` |
-| Psychiatry | Dr. Amit Joshi | `psychiatry` | `demo` |
-| Gastroenterology | Dr. Priya Nair | `gastroenterology` | `demo` |
-| Pulmonology | Dr. Sandeep Verma | `pulmonology` | `demo` |
-| Ophthalmology | Dr. Pooja Shah | `ophthalmology` | `demo` |
-| ENT | Dr. Nitin Patil | `ent` | `demo` |
+| Specialty | Official Work Email | Password |
+| :--- | :--- | :--- |
+| **Cardiology** | `cardiology@lifelink.com` | `cardio@lifelink` |
+| **Orthopedics** | `orthopedics@lifelink.com` | `ortho@lifelink` |
+| **Dermatology** | `dermatology@lifelink.com` | `derma@lifelink` |
+| **Neurology** | `neurology@lifelink.com` | `neuro@lifelink` |
+| **Pediatrics** | `pediatrics@lifelink.com` | `pedia@lifelink` |
+| **General Practice** | `generalpractice@lifelink.com` | `general@lifelink` |
+| **Ophthalmology** | `ophthalmology@lifelink.com` | `ophthal@lifelink` |
+| **Gastroenterology** | `gastroenterology@lifelink.com` | `gastro@lifelink` |
+| **Psychiatry** | `psychiatry@lifelink.com` | `psych@lifelink` |
+| **Endocrinology** | `endocrinology@lifelink.com` | `endo@lifelink` |
+| **Pulmonology** | `pulmonology@lifelink.com` | `pulmo@lifelink` |
+| **Gynecology** | `gynecology@lifelink.com` | `gynae@lifelink` |
+
+
 
 ---
 
@@ -336,6 +346,9 @@ When the app starts, 12 doctor accounts are already loaded. You can log into any
 | `npm run verify` | Run type check + tests + build all at once |
 | `npm run db:push` | Update database tables after schema changes |
 | `npm run db:studio` | Open a visual UI to browse your database |
+| `npm run db:clear` | Completely wipe all user records and history for a fresh start |
+| `npm run db:sync:doctors` | Audit live database and verify/sync all 12 doctor work accounts |
+
 
 ---
 
@@ -356,6 +369,7 @@ When the app starts, 12 doctor accounts are already loaded. You can log into any
 | `/patient/prescriptions` | Prescriptions from your doctor |
 | `/patient/emergency` | Emergency contacts & 112 button |
 | `/doctor/login` | Doctor login |
+| `/doctor/reset` | Doctor password reset view |
 | `/doctor/dashboard` | Doctor's appointment queue |
 | `/doctor/appointments` | Manage patient appointments |
 | `/doctor/prescriptions` | Write & sign prescriptions |

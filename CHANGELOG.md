@@ -15,6 +15,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Fixed responsive CSS layout grid constraints (`.responsive-list-grid` converted to `minmax(min(100%, 280px), 1fr)`) ensuring card wrapping across 320px mobile to 1920px widescreen viewports.
   - Added explicit HTML form element `<label>` associations and `aria-label` screen reader attributes across all Patient and Doctor workspace controls.
   - Enhanced visual accessibility for modal dialogs and integrated active countdown feedback into 5-minute patient auto-logout handlers.
+- **Google OAuth 2.0 Integration & Resilient Patient Auth Architecture**:
+  - Implemented one-click Google Sign-In and Registration exclusively for the Patient Portal (`/login` and `/register`) with authentic 4-color Google branding.
+  - Enforced strict role sandboxing: OAuth authentication is strictly limited to the patient domain (`resolveProviderPatient`), completely preventing third-party escalation into clinician accounts.
+  - Added resilient authorization start URL resolution with automatic fallback to relative `/api/auth/google` endpoints and React Query retries (`retry: 3, staleTime: 10000`) to eliminate Vite dev proxy startup race conditions.
+  - Converted `ENV` configuration in `backend/_core/env.ts` to dynamic getters with top-level `dotenv/config`, preventing ESM module hoisting from evaluating empty environment variables.
+  - Resolved local `ERR_SSL_PROTOCOL_ERROR` by validating `http://localhost:5173` origins for local development while preserving strict HTTPS checks in production.
+- **Unified 2-Column Clinical Split Layout Across All Entry Portals**:
+  - Standardized all 4 authentication and credential views (`/login`, `/register`, `/doctor/login`, `/doctor/reset`) to match the clinical 2-column split UI layout from `/doctor/setup`.
+  - Added ambient ECG monitor wave background art, left branding showcase panel, responsive aqua card container, and 3 security trust badges.
+- **Brand Identity & Favicon Standardization**:
+  - Replaced default Vite lightning favicon with the official LifeLink heart-cross brand mark across `frontend/index.html`, `public/favicon.ico`, and `public/favicon.png`.
+- **Windows Dev Runner Batch Termination Fix**:
+  - Configured child process stdio options (`stdio: ["ignore", "inherit", "inherit"]`) in `scripts/dev.mjs` to eliminate Windows CMD "Terminate batch job (Y/N)?" prompt hangs on server reload.
+- **Clinician Work Email & Password Standardization**:
+  - Enforced strict `@lifelink.com` clinical work emails across the Doctor Portal (`cardiology@lifelink.com`, `orthopedics@lifelink.com`, etc.), completely removing informal usernames and aliases.
+  - Updated Doctor Login (`/doctor/login`) with strict `type="email"` client-side constraints and `z.string().email()` backend Zod validation.
+  - Established a clean, memorable, uniform credential schema: official email (`<specialty>@lifelink.com`) and matching password (`<specialty-prefix>@lifelink`).
+- **Clinician Setup Portal Redesign & Resilient Provisioning (`/doctor/setup`)**:
+  - Redesigned `/doctor/setup` to make the individual doctor credential creation form the primary, front-and-center card.
+  - Integrated auto-suggest for work emails and passwords upon specialty selection, with full custom editing support and show/hide password toggles.
+  - Pre-filled the master provisioning code (`lifelink-controlled-clinician-secret-key-2026`) and removed arbitrary minimum length barriers.
+  - Implemented seamless credential refreshing in `backend/auth/doctorAuth.ts` so submitting an existing doctor's setup updates their email and password without throwing conflict errors.
+- **Database Maintenance & Synchronization Commands**:
+  - Added `npm run db:clear` (`scripts/clear-users.ts`) to atomically wipe all 13 database tables (users, credentials, profiles, appointments, prescriptions, medicines, events, provider identities) for a clean slate.
+  - Added `npm run db:sync:doctors` (`scripts/sync-doctors.ts`) to audit the live MySQL database, detect missing specialties, and automatically insert/verify all 12 active doctor accounts.
+  - Maintained zero default patient seeding so patient onboarding can be tested manually or via Google OAuth.
 - **Batch 18 — Production Readiness & Deployment Safety Audit**:
   - Implemented strict `NODE_ENV=production` truncation protection in `scripts/seed-doctors.ts` to prevent accidental database wiping in production deployments.
   - Enforced mandatory non-empty `JWT_SECRET` verification in `backend/auth/authUtil.ts`, blocking fallback keys in production environments.

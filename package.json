@@ -12,6 +12,8 @@
     "test": "vitest run",
     "db:push": "drizzle-kit generate --config database/drizzle.config.ts && drizzle-kit migrate --config database/drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config database/drizzle.config.ts",
+    "db:clear": "tsx scripts/clear-users.ts",
+    "db:sync:doctors": "tsx scripts/sync-doctors.ts",
     "verify": "npm run check && npm test && npm run build"
   },
   "dependencies": {

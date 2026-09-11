@@ -71,3 +71,10 @@ To prevent medical hallucinations, dangerous clinical advice, or AI prompt injec
 - All secrets (`JWT_SECRET`, `GEMINI_API_KEY`, `DATABASE_URL`) are read strictly from environment variables and must never be committed to version control.
 - In production (`NODE_ENV=production`), the application strictly throws an error if `JWT_SECRET` is omitted or empty, preventing fallback secret keys.
 - Database provisioning scripts (`scripts/seed-doctors.ts`) enforce strict `NODE_ENV=production` guards, preventing destructive table truncations in production database environments.
+
+### 3.8. Google OAuth 2.0 Security & Patient-Clinician Role Separation
+- **Cryptographic State & Nonce Protection**: During OAuth initialization, a cryptographically random 32-byte state and nonce pair is signed into a secure, `httpOnly`, short-lived (10-minute) cookie (`lifelink_google_oauth_state`). On callback, the state is compared using constant-time evaluation (`crypto.timingSafeEqual`) to prevent Cross-Site Request Forgery (CSRF) and token replay attacks.
+- **Strict Role Sandboxing**: Google OAuth authentication is strictly limited to the patient domain (`resolveProviderPatient`). Clinician accounts cannot authenticate or be provisioned via Google OAuth, safeguarding medical governance and preventing unauthorized access to the Doctor Workspace.
+- **Account Hijacking Mitigation**: If a Google OAuth account attempts to authenticate with an email that is already registered natively as a patient or doctor, the system detects the collision (`ProviderAccountConflictError`) and halts authorization, prompting the user to sign in using their established credentials.
+- **Strict Origin Validation**: OAuth callback URLs are validated via `googleAvailabilityFromConfig` to strictly enforce HTTPS in production environments while securely permitting loopback development (`http://localhost:5173`).
+
