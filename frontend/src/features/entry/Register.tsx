@@ -18,23 +18,24 @@ const GoogleIcon = () => (
   </svg>
 );
 
+// Patient registration page component for creating new accounts
 export const PatientRegistration = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const trpcUtils = trpc.useUtils();
-  const registerMutation = trpc.patientAuth.register.useMutation();
-  const providerQuery = trpc.auth.providers.useQuery(undefined, {
-    retry: 3,
-    staleTime: 10000,
+  const navigate = useNavigate();                                                          // Navigation hook for dashboard redirection
+  const [searchParams] = useSearchParams();                                                // URL search parameters for OAuth error notifications
+  const trpcUtils = trpc.useUtils();                                                       // tRPC utility cache client
+  const registerMutation = trpc.patientAuth.register.useMutation();                        // Mutation hook creating new native patient in DB
+  const providerQuery = trpc.auth.providers.useQuery(undefined, {                          // Query available social OAuth providers
+    retry: 3,                                                                              // Retry up to 3 times
+    staleTime: 10000,                                                                      // Cache provider availability for 10 seconds
   });
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [name, setName] = useState('');                                                    // Controlled full name state
+  const [email, setEmail] = useState('');                                                  // Controlled email state
+  const [password, setPassword] = useState('');                                            // Controlled password state
+  const [confirmPassword, setConfirmPassword] = useState('');                              // Controlled confirm password state
+  const [isLoading, setIsLoading] = useState(false);                                       // Registration submission loading state
+  const [error, setError] = useState('');                                                  // Validation or server error message
 
-  const authErrorParam = searchParams.get('authError');
+  const authErrorParam = searchParams.get('authError');                                    // Check if arriving from failed Google registration
   useEffect(() => {
     if (authErrorParam) {
       const errorMap: Record<string, string> = {
@@ -47,28 +48,30 @@ export const PatientRegistration = () => {
     }
   }, [authErrorParam]);
 
+  // Validates matching passwords and calls backend registration mutation
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    if (password !== confirmPassword) {
+    e.preventDefault();                                                                    // Prevent form refresh
+    setIsLoading(true);                                                                    // Show progress state
+    setError('');                                                                          // Clear existing error
+    if (password !== confirmPassword) {                                                    // Client-side password match verification
       setError('Passwords do not match.');
       setIsLoading(false);
       return;
     }
     try {
-      await registerMutation.mutateAsync({ name, email, password });
-      await trpcUtils.auth.me.refetch();
-      navigate(PATIENT_DASHBOARD_PATH, { replace: true });
+      await registerMutation.mutateAsync({ name, email, password });                       // Call tRPC registration procedure
+      await trpcUtils.auth.me.refetch();                                                   // Update authenticated user context
+      navigate(PATIENT_DASHBOARD_PATH, { replace: true });                                 // Direct new patient to dashboard
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
-      setIsLoading(false);
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.'); // Display failure reason
+      setIsLoading(false);                                                                 // Reset loading state
     }
   };
 
+  // Initiates Google OAuth sign-up flow
   const handleGoogleClick = () => {
-    const startUrl = providerQuery.data?.googleRegistrationStartUrl ?? providerQuery.data?.googleAuthorizationStartUrl ?? '/api/auth/google?intent=register';
-    window.location.assign(startUrl);
+    const startUrl = providerQuery.data?.googleRegistrationStartUrl ?? providerQuery.data?.googleAuthorizationStartUrl ?? '/api/auth/google?intent=register'; // Registration intent endpoint
+    window.location.assign(startUrl);                                                      // Redirect to Google consent screen
   };
 
   return (

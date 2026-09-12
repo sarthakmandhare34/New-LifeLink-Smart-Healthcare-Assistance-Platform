@@ -1,89 +1,92 @@
-/**
- * ============================================================================
- * LIFELINK FRONTEND: EMERGENCY ASSISTANCE SOS WORKFLOW (features/patient/Emergency/Emergency.tsx)
- * ============================================================================
- * 
- * WHAT THIS COMPONENT DOES:
- * This component provides critical emergency assistance capabilities:
- * 1. India Unified Emergency Hotline (112): Offers a one-touch confirmed trigger
- *    that launches the device's native phone dialer pre-populated with "112".
- * 2. Emergency Contacts SOS Dispatch: Integrates with the patient's Health Passport
- *    to retrieve verified emergency contacts (spouse, parent, physician).
- * 3. User Consent Safety Guarantee: LifeLink NEVER silently sends messages or places
- *    calls in the background. It constructs a deep-link `sms:` URI with pre-filled distress
- *    copy so the patient reviews and authorizes the message before dispatch.
- */
-import React, { useState } from 'react';
-import { ShieldAlert, Phone, MessageCircle, Siren, UsersRound } from 'lucide-react';
-import { Card } from '../../../components/ui/Card';
-import { Button } from '../../../components/ui/Button';
-import { Popup } from '../../../components/ui/Popup';
-import { trpc } from '../../../lib/trpc';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';                                                  // Core React hooks for interactive state management
+import { ShieldAlert, Phone, MessageCircle, Siren, UsersRound } from 'lucide-react';           // Emergency and communication icon set
+import { Card } from '../../../components/ui/Card';                                            // Reusable visual card component
+import { Button } from '../../../components/ui/Button';                                        // Accessible UI button
+import { Popup } from '../../../components/ui/Popup';                                          // Modal dialog component for user confirmation gates
+import { trpc } from '../../../lib/trpc';                                                       // Type-safe tRPC client bridge
+import { useNavigate } from 'react-router-dom';                                                 // SPA route navigation hook
 
-/** India’s unified emergency response number. The control only opens a dialer after confirmation. */
-export const AMBULANCE_EMERGENCY_NUMBER = '112';
-export const SMS_CONFIRMATION_TITLE = 'Prepare SOS message';
+// =========================================================================================
+// EMERGENCY SOS WORKFLOW CONSTANTS & DISPATCH PREPARATION
+// In strict adherence to Indian Telecom and Digital Personal Data Protection guidelines:
+// LifeLink NEVER silently places phone calls or sends SMS messages in the background.
+// All actions require conscious user confirmation and hand off directly to native device apps.
+// =========================================================================================
 
-/** This copy is placed into the user’s SMS composer; LifeLink never sends it automatically. */
+/** India’s unified emergency response hotline (112 ERSS - Emergency Response Support System) */
+export const AMBULANCE_EMERGENCY_NUMBER = '112';                                                // Official all-in-one national emergency number in India
+export const SMS_CONFIRMATION_TITLE = 'Prepare SOS message';                                    // Modal title ensuring clear patient consent
+
+/** Prepares pre-composed distress message text for the patient's native SMS application */
 export function buildEmergencySmsBody() {
-  return 'SOS: Please contact me immediately. I requested emergency help through LifeLink.';
+  return 'SOS: Please contact me immediately. I requested emergency help through LifeLink.';      // Standard clear distress notification copy
 }
 
+/** Formats a sanitized tel/sms URI with URL-encoded distress message body */
 function smsHref(phone: string) {
-  return `sms:${phone.replace(/[^+\d]/g, '')}?body=${encodeURIComponent(buildEmergencySmsBody())}`;
+  return `sms:${phone.replace(/[^+\d]/g, '')}?body=${encodeURIComponent(buildEmergencySmsBody())}`; // Deep link invoking OS native SMS messenger
 }
 
+// =========================================================================================
+// EMERGENCY ASSISTANCE SOS WORKFLOW COMPONENT
+// Provides rapid one-touch access to the national 112 emergency hotline and emergency contacts.
+// =========================================================================================
 export const Emergency = () => {
-  const navigate = useNavigate();
-  const profileQuery = trpc.patientProfile.get.useQuery();
-  const [isAmbulanceConfirmOpen, setIsAmbulanceConfirmOpen] = useState(false);
-  const [contactForSms, setContactForSms] = useState<{ name: string; phone: string } | null>(null);
+  const navigate = useNavigate();                                                               // Router navigation hook for redirections
+  const profileQuery = trpc.patientProfile.get.useQuery();                                      // Retrieves patient profile and emergency contacts
+  const [isAmbulanceConfirmOpen, setIsAmbulanceConfirmOpen] = useState(false);                  // Modal gate before launching dialer for 112
+  const [contactForSms, setContactForSms] = useState<{ name: string; phone: string } | null>(null); // Contact selected for SOS SMS composition
 
-  const contacts = profileQuery.data?.emergencyContacts ?? [];
+  const contacts = profileQuery.data?.emergencyContacts ?? [];                                  // Emergency contacts list or fallback to empty array
 
+  // Open device native SMS composer with pre-filled distress message
   const openSmsComposer = () => {
-    if (!contactForSms) return;
-    // This opens the user’s native SMS composer. The user must review and send the message themselves.
-    const smsTarget = smsHref(contactForSms.phone);
-    setContactForSms(null);
-    window.location.assign(smsTarget);
+    if (!contactForSms) return;                                                                 // Guard against unselected contact
+    // Opens native SMS composer where user reviews and presses send themselves
+    const smsTarget = smsHref(contactForSms.phone);                                             // Build deep link
+    setContactForSms(null);                                                                     // Close modal dialog
+    window.location.assign(smsTarget);                                                          // Hand off control to operating system SMS app
   };
 
+  // Open device native phone dialer pre-populated with 112
   const openAmbulanceDialer = () => {
-    setIsAmbulanceConfirmOpen(false);
-    // This opens the dialer only. The user must still choose to place the call.
-    window.location.assign(`tel:${AMBULANCE_EMERGENCY_NUMBER}`);
+    setIsAmbulanceConfirmOpen(false);                                                           // Close modal dialog
+    // Opens native dialer pre-populated with 112; user must tap dial button
+    window.location.assign(`tel:${AMBULANCE_EMERGENCY_NUMBER}`);                                // Hand off control to phone dialer
   };
 
   return (
     <div className="dashboard-workspace">
+      {/* Emergency header banner */}
       <header style={{ marginBottom: 'var(--spacing-5)' }}>
         <div className="flex items-center gap-3">
           <div style={{ width: 52, height: 52, borderRadius: '16px', background: 'rgba(187, 44, 44, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShieldAlert size={28} color="#B01E1E" />
+            <ShieldAlert size={28} color="#B01E1E" />                                           {/* Emergency alert badge */}
           </div>
           <div>
-            <h1 style={{ margin: 0 }}>Emergency Assistance</h1>
+            <h1 style={{ margin: 0 }}>Emergency Assistance</h1>                                 {/* Page title */}
             <p className="caption" style={{ margin: '4px 0 0' }}>Choose an action yourself. LifeLink does not call emergency services, send messages, or share your location automatically.</p>
           </div>
         </div>
       </header>
 
+      {/* Main emergency options container */}
       <div className="flex-col gap-4">
+        {/* Urgent National Hotline 112 Card */}
         <Card variant="emergency" style={{ padding: 'var(--spacing-5)' }}>
           <div className="flex-col gap-3">
             <div className="flex items-center gap-2">
-              <Siren size={24} color="#B01E1E" />
+              <Siren size={24} color="#B01E1E" />                                               {/* Siren emergency icon */}
               <h2 style={{ margin: 0, color: 'var(--color-primary)' }}>Call emergency response</h2>
             </div>
             <p style={{ margin: 0 }}>For an immediate emergency in India, you can open your device dialer for the unified emergency number <strong>{AMBULANCE_EMERGENCY_NUMBER}</strong>. Your device will ask you to place the call.</p>
             <Button variant="danger" onClick={() => setIsAmbulanceConfirmOpen(true)}>
-              <Phone size={18} /> Call {AMBULANCE_EMERGENCY_NUMBER}
+              <Phone size={18} /> Call {AMBULANCE_EMERGENCY_NUMBER}                             {/* Triggers confirmation modal before dialer */}
             </Button>
           </div>
         </Card>
 
+        {/* Health Passport Emergency Contacts Card */}
         <Card variant="glass" style={{ padding: 'var(--spacing-5)' }}>
           <div className="flex items-center gap-2 mb-3">
             <UsersRound size={22} color="var(--color-primary)" />
@@ -93,28 +96,33 @@ export const Emergency = () => {
             </div>
           </div>
 
+          {/* Loading indicator */}
           {profileQuery.isLoading && <p className="caption" style={{ margin: 0 }}>Loading your recorded emergency contacts…</p>}
+          
+          {/* Empty contacts fallback with direct link to Health Passport */}
           {!profileQuery.isLoading && contacts.length === 0 && (
             <div className="flex-col gap-3">
               <p className="caption" style={{ margin: 0 }}>No emergency contacts are recorded in your Health Passport yet.</p>
               <Button variant="outline" onClick={() => navigate('/patient/health-passport')}>Manage emergency contacts</Button>
             </div>
           )}
+
+          {/* Render verified emergency contacts */}
           {!profileQuery.isLoading && contacts.length > 0 && (
             <div className="flex-col gap-3">
               {contacts.map((contact) => (
                 <div key={contact.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-3)', padding: '12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)' }}>
                   <div>
-                    <strong style={{ color: 'var(--color-primary)' }}>{contact.name}</strong>
-                    <p className="caption" style={{ margin: '2px 0 0' }}>{contact.relationship}</p>
+                    <strong style={{ color: 'var(--color-primary)' }}>{contact.name}</strong>   {/* Contact name */}
+                    <p className="caption" style={{ margin: '2px 0 0' }}>{contact.relationship}</p> {/* Contact relationship */}
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setContactForSms({ name: contact.name, phone: contact.phone })}
+                    onClick={() => setContactForSms({ name: contact.name, phone: contact.phone })} // Select contact for SMS draft modal
                     aria-label={`Review SOS message for ${contact.name}`}
                   >
-                    <MessageCircle size={16} /> Review SOS message
+                    <MessageCircle size={16} /> Review SOS message                              {/* SMS action trigger */}
                   </Button>
                 </div>
               ))}
@@ -123,6 +131,7 @@ export const Emergency = () => {
         </Card>
       </div>
 
+      {/* Confirmation Modal before launching Phone Dialer */}
       <Popup isOpen={isAmbulanceConfirmOpen} onClose={() => setIsAmbulanceConfirmOpen(false)} title="Open emergency dialer" closeOnBackdrop={false}>
         <div className="flex-col gap-4">
           <p style={{ margin: 0 }}>This will open your device dialer with <strong>{AMBULANCE_EMERGENCY_NUMBER}</strong>. LifeLink will not place the call for you; you decide whether to continue in your phone app.</p>
@@ -133,6 +142,7 @@ export const Emergency = () => {
         </div>
       </Popup>
 
+      {/* Confirmation Modal before launching SMS Messenger */}
       <Popup isOpen={Boolean(contactForSms)} onClose={() => setContactForSms(null)} title={SMS_CONFIRMATION_TITLE} closeOnBackdrop={false}>
         <div className="flex-col gap-4">
           <p style={{ margin: 0 }}>This will open an SMS draft addressed to <strong>{contactForSms?.name}</strong>. LifeLink will not send it; you can review, edit, or cancel it in your messaging app.</p>

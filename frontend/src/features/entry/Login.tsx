@@ -18,22 +18,23 @@ const GoogleIcon = () => (
   </svg>
 );
 
+// Patient sign-in page component supporting email/password and Google OAuth
 export const PatientLogin = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const trpcUtils = trpc.useUtils();
-  const loginMutation = trpc.patientAuth.login.useMutation();
-  const providerQuery = trpc.auth.providers.useQuery(undefined, {
-    retry: 3,
-    staleTime: 10000,
+  const navigate = useNavigate();                                                          // Programmatic page navigation hook
+  const [searchParams] = useSearchParams();                                                // Access URL query params (e.g. authError from OAuth redirect)
+  const trpcUtils = trpc.useUtils();                                                       // tRPC cache utilities for query refetching
+  const loginMutation = trpc.patientAuth.login.useMutation();                              // Mutation hook for native patient authentication
+  const providerQuery = trpc.auth.providers.useQuery(undefined, {                          // Query available social OAuth providers
+    retry: 3,                                                                              // Retry up to 3 times
+    staleTime: 10000,                                                                      // Cache provider availability for 10 seconds
   });
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState('');                                                  // Controlled state for email input
+  const [password, setPassword] = useState('');                                            // Controlled state for password input
+  const [showPassword, setShowPassword] = useState(false);                                 // Toggle password visibility
+  const [isLoading, setIsLoading] = useState(false);                                       // Form submission loading state
+  const [error, setError] = useState('');                                                  // Error message display
 
-  const authErrorParam = searchParams.get('authError');
+  const authErrorParam = searchParams.get('authError');                                    // Check if arriving from failed OAuth redirect
   useEffect(() => {
     if (authErrorParam) {
       const errorMap: Record<string, string> = {
@@ -47,23 +48,25 @@ export const PatientLogin = () => {
     }
   }, [authErrorParam]);
 
+  // Submits native email and password credentials to backend tRPC API
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
+    e.preventDefault();                                                                    // Prevent standard browser page reload
+    setIsLoading(true);                                                                    // Show loading spinner
+    setError('');                                                                          // Clear previous errors
     try {
-      await loginMutation.mutateAsync({ email, password });
-      await trpcUtils.auth.me.refetch();
-      navigate(PATIENT_DASHBOARD_PATH, { replace: true });
+      await loginMutation.mutateAsync({ email, password });                                // Send credentials to backend
+      await trpcUtils.auth.me.refetch();                                                   // Re-query current user context
+      navigate(PATIENT_DASHBOARD_PATH, { replace: true });                                 // Navigate to patient dashboard
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unable to sign in. Please try again.');
-      setIsLoading(false);
+      setError(err instanceof Error ? err.message : 'Unable to sign in. Please try again.'); // Display failure message
+      setIsLoading(false);                                                                 // Reset loading state
     }
   };
 
+  // Redirects user to Google OAuth authorization URL
   const handleGoogleClick = () => {
-    const startUrl = providerQuery.data?.googleAuthorizationStartUrl || '/api/auth/google';
-    window.location.assign(startUrl);
+    const startUrl = providerQuery.data?.googleAuthorizationStartUrl || '/api/auth/google'; // Get configured Google auth endpoint
+    window.location.assign(startUrl);                                                      // Navigate browser to Google sign-in
   };
 
   return (

@@ -50,23 +50,25 @@ function urgencyBadgeStyle(urgency: AssessmentResult['urgency']) {
   return { bg: 'rgba(13, 148, 136, 0.12)', color: 'var(--color-semantic-success)', border: '1px solid rgba(13, 148, 136, 0.2)' };
 }
 
+// AI symptom evaluation and clinical decision-support triage page
 export const AIAssessment = () => {
-  const trpcUtils = trpc.useUtils();
-  const savedAssessments = trpc.assessment.list.useQuery();
-  const analyzeAssessment = trpc.assessment.analyze.useMutation();
-  const navigate = useNavigate();
+  const trpcUtils = trpc.useUtils();                                                       // Cache invalidation client
+  const savedAssessments = trpc.assessment.list.useQuery();                                // Query historical assessments for patient
+  const analyzeAssessment = trpc.assessment.analyze.useMutation();                         // Mutation to trigger live Gemini evaluation
+  const navigate = useNavigate();                                                          // Programmatic navigation hook
 
-  const [symptoms, setSymptoms] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [conditions, setConditions] = useState('');
-  const [duration, setDuration] = useState('');
-  const [result, setResult] = useState<AssessmentResult | null>(null);
-  const [selectedHistoryItem, setSelectedHistoryItem] = useState<AssessmentResult | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [symptoms, setSymptoms] = useState('');                                            // Patient symptom description text
+  const [age, setAge] = useState('');                                                      // Patient age input string
+  const [gender, setGender] = useState('');                                                // Stated biological gender ('Man', 'Woman', 'Other')
+  const [conditions, setConditions] = useState('');                                        // Pre-existing medical conditions
+  const [duration, setDuration] = useState('');                                            // Symptom onset / duration
+  const [result, setResult] = useState<AssessmentResult | null>(null);                     // Newly returned assessment result
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<AssessmentResult | null>(null); // Historical assessment chosen for popup
+  const [isProcessing, setIsProcessing] = useState(false);                                 // Processing state while waiting for AI response
+  const [apiError, setApiError] = useState<string | null>(null);                           // Error message string
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);                       // Modal visibility state
 
+  // Resets symptom form inputs
   const resetForm = () => {
     setSymptoms('');
     setAge('');
@@ -77,48 +79,52 @@ export const AIAssessment = () => {
     setApiError(null);
   };
 
+  // Handles closing the triage results modal
   const handleCloseResult = () => {
-    setIsResultModalOpen(false);
-    if (result?.urgency !== 'EMERGENCY') resetForm();
+    setIsResultModalOpen(false);                                                           // Close dialog
+    if (result?.urgency !== 'EMERGENCY') resetForm();                                      // Keep emergency details visible
   };
 
+  // Submits patient clinical data to tRPC for Gemini AI evaluation
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const parsedAge = Number.parseInt(age, 10);
+    event.preventDefault();                                                                // Prevent browser form reload
+    const parsedAge = Number.parseInt(age, 10);                                            // Parse numeric age
     if (!symptoms.trim() || Number.isNaN(parsedAge) || parsedAge < 0 || parsedAge > 120 || !gender || !duration.trim()) {
-      setApiError('Please fill out all required fields with valid values (Age between 0 and 120).');
+      setApiError('Please fill out all required fields with valid values (Age between 0 and 120).'); // Validation failure
       return;
     }
 
-    setIsProcessing(true);
-    setApiError(null);
+    setIsProcessing(true);                                                                 // Activate loading animation
+    setApiError(null);                                                                     // Clear existing error
     try {
-      const assessment = await analyzeAssessment.mutateAsync({
+      const assessment = await analyzeAssessment.mutateAsync({                             // Send request to backend
         symptoms: symptoms.trim(),
         age: parsedAge,
         gender,
         conditions: conditions.trim() || undefined,
         duration: duration.trim(),
       });
-      await trpcUtils.assessment.list.invalidate();
-      await trpcUtils.patientDashboard.summary.invalidate();
-      setResult(assessment);
-      setIsResultModalOpen(true);
+      await trpcUtils.assessment.list.invalidate();                                        // Invalidate assessment history cache
+      await trpcUtils.patientDashboard.summary.invalidate();                               // Invalidate dashboard metrics
+      setResult(assessment);                                                               // Store returned triage output
+      setIsResultModalOpen(true);                                                          // Open result modal popup
     } catch (error: any) {
       console.error('Assessment failed', error);
       setApiError(error?.message || 'Live AI health assessment is temporarily unavailable. Please try again or seek appropriate professional medical care based on your symptoms.');
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false);                                                              // Clear loading state
     }
   };
 
+  // Navigates patient directly to specialist directory pre-filtered by recommended specialty
   const findSpecialist = () => {
-    const specialtyToQuery = result?.specialty || selectedHistoryItem?.specialty || '';
-    navigate(`/patient/specialists?specialty=${encodeURIComponent(specialtyToQuery)}`);
+    const specialtyToQuery = result?.specialty || selectedHistoryItem?.specialty || '';   // Identify target specialty
+    navigate(`/patient/specialists?specialty=${encodeURIComponent(specialtyToQuery)}`);    // Route to specialist search
   };
 
-  const activeModalItem = result || selectedHistoryItem;
+  const activeModalItem = result || selectedHistoryItem;                                   // Active item being viewed in popup
 
+  // Look up matched in-system doctor for the recommended specialty
   const matchedDoctorQuery = trpc.patientDiscovery.list.useQuery(
     { specialty: activeModalItem?.specialty },
     {
@@ -129,7 +135,7 @@ export const AIAssessment = () => {
       ),
     }
   );
-  const matchedDoctor = matchedDoctorQuery.data?.[0];
+  const matchedDoctor = matchedDoctorQuery.data?.[0];                                      // First matching specialist
 
   const cardStyle = {
     background: '#E6F9FC',

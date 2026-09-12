@@ -7,57 +7,62 @@ import { BentoGrid, BentoItem } from '../../../components/layout/Bento';
 import { CheckCircle2, Clock, XCircle, Calendar as CalendarIcon, User } from 'lucide-react';
 import { trpc } from '../../../lib/trpc';
 
+// Patient appointments management page displaying upcoming visits and cancellation workflow
 export const Appointments = () => {
-  const trpcUtils = trpc.useUtils();
-  const appointmentsQuery = trpc.patientAppointment.list.useQuery();
-  const cancelMutation = trpc.patientAppointment.cancel.useMutation();
-  const [cancellingId, setCancellingId] = useState<number | null>(null);
-  const [appointmentToCancel, setAppointmentToCancel] = useState<number | null>(null);
-  const [mutationError, setMutationError] = useState('');
+  const trpcUtils = trpc.useUtils();                                                       // Cache invalidation client
+  const appointmentsQuery = trpc.patientAppointment.list.useQuery();                       // Query all appointments for signed-in patient
+  const cancelMutation = trpc.patientAppointment.cancel.useMutation();                     // Mutation procedure to cancel an appointment
+  const [cancellingId, setCancellingId] = useState<number | null>(null);                   // ID of appointment actively being cancelled
+  const [appointmentToCancel, setAppointmentToCancel] = useState<number | null>(null);     // ID of appointment selected for confirmation dialog
+  const [mutationError, setMutationError] = useState('');                                  // Error message string for UI alert
 
-  if (appointmentsQuery.isLoading) {
+  if (appointmentsQuery.isLoading) {                                                       // Loading state view
     return <div className="flex items-center justify-center h-full"><p className="caption">Loading appointments…</p></div>;
   }
 
-  const appointments = appointmentsQuery.data ?? [];
-  const upcoming = appointments.filter((appointment) => ['Requested', 'Pending', 'Confirmed'].includes(appointment.status));
-  const past = appointments.filter((appointment) => ['Completed', 'Cancelled'].includes(appointment.status));
+  const appointments = appointmentsQuery.data ?? [];                                       // List of patient appointments
+  const upcoming = appointments.filter((appointment) => ['Requested', 'Pending', 'Confirmed'].includes(appointment.status)); // Future active visits
+  const past = appointments.filter((appointment) => ['Completed', 'Cancelled'].includes(appointment.status)); // History of past consultations
 
+  // Returns icon component matching appointment status
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'Completed': return <CheckCircle2 size={14} />;
-      case 'Confirmed': return <CheckCircle2 size={14} />;
+      case 'Completed': return <CheckCircle2 size={14} />;                                 // Completed checkmark
+      case 'Confirmed': return <CheckCircle2 size={14} />;                                 // Confirmed checkmark
       case 'Requested':
-      case 'Pending': return <Clock size={14} />;
-      case 'Cancelled': return <XCircle size={14} />;
+      case 'Pending': return <Clock size={14} />;                                          // Pending clock
+      case 'Cancelled': return <XCircle size={14} />;                                      // Cancelled cross
       default: return null;
     }
   };
 
+  // Maps appointment status to badge color variant
   const getStatusVariant = (status: string) => {
-    if (status === 'Confirmed' || status === 'Completed') return 'success';
-    if (status === 'Cancelled') return 'danger';
-    return 'neutral';
+    if (status === 'Confirmed' || status === 'Completed') return 'success';                // Green for confirmed / completed
+    if (status === 'Cancelled') return 'danger';                                           // Red for cancelled
+    return 'neutral';                                                                      // Amber / neutral for pending
   };
 
+  // Opens confirmation dialog before cancelling
   const requestCancel = (id: number) => {
-    setAppointmentToCancel(id);
+    setAppointmentToCancel(id);                                                            // Prompt confirmation modal
   };
 
+  // Submits cancellation request to backend and invalidates caches
   const confirmCancel = async () => {
     if (appointmentToCancel === null) return;
-    const id = appointmentToCancel;
-    setAppointmentToCancel(null);
-    setCancellingId(id);
-    setMutationError('');
+    const id = appointmentToCancel;                                                        // Target ID
+    setAppointmentToCancel(null);                                                          // Close modal
+    setCancellingId(id);                                                                   // Set cancelling spinner
+    setMutationError('');                                                                  // Clear error
     try {
-      await cancelMutation.mutateAsync({ id });
-      await trpcUtils.patientAppointment.list.invalidate();
-      await trpcUtils.patientDashboard.summary.invalidate();
+      await cancelMutation.mutateAsync({ id });                                            // Execute cancellation mutation
+      await trpcUtils.patientAppointment.list.invalidate();                                // Refresh appointment list
+      await trpcUtils.patientDashboard.summary.invalidate();                               // Refresh dashboard counters
     } catch (error: unknown) {
       setMutationError(error instanceof Error ? error.message : 'Unable to cancel this appointment. Please try again.');
     } finally {
-      setCancellingId(null);
+      setCancellingId(null);                                                               // Reset loading state
     }
   };
 

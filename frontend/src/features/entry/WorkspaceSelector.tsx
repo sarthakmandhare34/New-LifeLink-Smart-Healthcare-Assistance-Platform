@@ -1,37 +1,41 @@
-import { useState } from "react";
-import { ArrowRight, HeartPulse, LoaderCircle, ShieldCheck, Stethoscope } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { EntryThemeToggle } from "../../components/EntryThemeToggle";
-import { LifeLinkLogo } from "../../components/brand/LifeLinkLogo";
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
+import { useState } from "react";                                                         // React state hook for tracking UI transitions
+import { ArrowRight, HeartPulse, LoaderCircle, ShieldCheck, Stethoscope } from "lucide-react"; // Healthcare and action icons
+import { useNavigate } from "react-router-dom";                                            // Programmatic client router navigation hook
+import { EntryThemeToggle } from "../../components/EntryThemeToggle";                      // Theme toggle button for login screens
+import { LifeLinkLogo } from "../../components/brand/LifeLinkLogo";                        // LifeLink branded SVG logo component
+import { Button } from "../../components/ui/Button";                                       // Accessible button component
+import { Card } from "../../components/ui/Card";                                           // Glassmorphic container card component
 
+// Feature highlights displayed on the patient portal card
 const patientHighlights = [
-  "Manage your own health profile and care records",
-  "Request appointments from the controlled Mumbai directory",
-  "Use protected assessment, medicine, and emergency tools",
+  "Manage your own health profile and care records",                                       // Self-owned medical health passport
+  "Request appointments from the controlled Mumbai directory",                             // Specialist scheduling across Mumbai transit lines
+  "Use protected assessment, medicine, and emergency tools",                               // AI triage and SOS quick-dial
 ];
 
+// Feature highlights displayed on the clinician workspace card
 const doctorHighlights = [
-  "Open the protected clinician workspace",
-  "Review only appointments assigned to your account",
+  "Open the protected clinician workspace",                                                // Clinician-authenticated portal
+  "Review only appointments assigned to your account",                                     // Privacy boundary protecting patient records
 ];
 
-type Workspace = "patient" | "clinician";
+type Workspace = "patient" | "clinician";                                                  // Available portal destinations
 
+// Gateway landing component enabling users to route between patient and clinician portals
 export const WorkspaceSelector = () => {
-  const navigate = useNavigate();
-  const [switchingTo, setSwitchingTo] = useState<Workspace | null>(null);
+  const navigate = useNavigate();                                                          // Navigation function
+  const [switchingTo, setSwitchingTo] = useState<Workspace | null>(null);                  // Active transition state ('patient' | 'clinician' | null)
 
+  // Smoothly transitions into the chosen portal with a subtle delay for glass animations
   const openWorkspace = (workspace: Workspace, path: string) => {
-    if (switchingTo) return;
-    setSwitchingTo(workspace);
-    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    window.setTimeout(() => navigate(path), reducedMotion ? 0 : 180);
+    if (switchingTo) return;                                                               // Prevent multiple clicks
+    setSwitchingTo(workspace);                                                             // Trigger transition state
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches; // Check accessibility motion preference
+    window.setTimeout(() => navigate(path), reducedMotion ? 0 : 180);                      // Navigate after brief visual confirmation
   };
 
-  const openingPatient = switchingTo === "patient";
-  const openingClinician = switchingTo === "clinician";
+  const openingPatient = switchingTo === "patient";                                        // True while loading patient portal
+  const openingClinician = switchingTo === "clinician";                                    // True while loading clinician portal
 
   return (
     <main
