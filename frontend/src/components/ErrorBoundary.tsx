@@ -1,24 +1,30 @@
-import { cn } from "@/lib/utils";
-import { AlertTriangle, RotateCcw } from "lucide-react";
-import { Component, ReactNode } from "react";
+import { cn } from "@/lib/utils";                                                              // Classname merger
+import { AlertTriangle, RotateCcw } from "lucide-react";                                        // Warning and reload icons
+import { Component, ReactNode } from "react";                                                   // React class component types
 
 interface Props {
-  children: ReactNode;
+  children: ReactNode;                                                                          // Wrapped tree
 }
 
 interface State {
-  hasError: boolean;
-  error: Error | null;
+  hasError: boolean;                                                                            // Error presence flag
+  error: Error | null;                                                                          // Caught error object
 }
 
+// =========================================================================================
+// REACT COMPONENT ERROR BOUNDARY
+// Catches unexpected runtime JavaScript exceptions anywhere in the React child tree.
+// Prevents complete application white-screening and displays a friendly recovery screen.
+// =========================================================================================
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null };                                              // Initial healthy state
   }
 
+  // Lifecycle invoked when child component throws error
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error };                                                           // Update state to render fallback UI
   }
 
   render() {
@@ -35,10 +41,11 @@ class ErrorBoundary extends Component<Props, State> {
 
             <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
               <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
+                {this.state.error?.stack}                                                       {/* Debug stack trace */}
               </pre>
             </div>
 
+            {/* Browser reload recovery trigger */}
             <button
               onClick={() => window.location.reload()}
               className={cn(
@@ -55,7 +62,7 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return this.props.children;                                                                 // Healthy render pass-through
   }
 }
 

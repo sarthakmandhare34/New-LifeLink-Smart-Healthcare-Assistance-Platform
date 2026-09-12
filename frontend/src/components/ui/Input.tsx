@@ -1,10 +1,14 @@
-/** Liquid-glass design note: shared form fields use the global pearlescent input layer. */
-import React from 'react';
+import React from 'react';                                                                // Core React engine
 
+// =========================================================================================
+// LIQUID-GLASS TEXT INPUT FIELD
+// Form field input component incorporating subtle cyan borders, smooth focus rings,
+// and accessible placeholder styling for high contrast readability.
+// =========================================================================================
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ style, className = '', ...props }, ref) => {
     const baseStyle: React.CSSProperties = {
-      background: 'transparent',
+      background: 'transparent',                                                                // Transparent backdrop
       border: '1px solid transparent',
       borderRadius: 'var(--border-radius-input)',
       padding: '10px var(--spacing-3)',
@@ -26,4 +30,4 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
   }
 );
 
-Input.displayName = 'Input';
+Input.displayName = 'Input';                                                                    // React DevTools display name

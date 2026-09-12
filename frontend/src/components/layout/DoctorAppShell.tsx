@@ -1,51 +1,66 @@
-/** Shared clinician shell for the restricted synthetic doctor workspace. */
-import React, { useState, useEffect } from "react";
-import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";                                         // Core React hooks
+import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";                     // Navigation routing primitives
 import {
   Calendar, LayoutDashboard, FileText, Users, Activity,
   Settings as SettingsIcon, User, LogOut, Sun, Moon, Bell,
   ChevronDown, Menu, X, Stethoscope
-} from "lucide-react";
-import { LifeLinkLogo } from "../brand/LifeLinkLogo";
-import { trpc } from "../../lib/trpc";
-import { useDoctorRealtime } from "../../hooks/useDoctorRealtime";
-import { useTheme } from "../../context/ThemeContext";
-import { registerPatientInactivityTimer } from "../../hooks/patientInactivity";
-import { toast } from "sonner";
+} from "lucide-react";                                                                          // Clinician workspace icon set
+import { LifeLinkLogo } from "../brand/LifeLinkLogo";                                           // Official brand logo component
+import { trpc } from "../../lib/trpc";                                                          // Type-safe tRPC client bridge
+import { useDoctorRealtime } from "../../hooks/useDoctorRealtime";                              // Real-time doctor SSE subscription hook
+import { useTheme } from "../../context/ThemeContext";                                          // Application theme manager
+import { registerPatientInactivityTimer } from "../../hooks/patientInactivity";                  // Auto-logout security timer hook
+import { toast } from "sonner";                                                                 // User feedback toast notifications
 
+// Doctor portal navigation items
 const navItems = [
-  { path: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/doctor/appointments", label: "Appointments", icon: Calendar },
-  { path: "/doctor/patients", label: "Patients", icon: Users },
-  { path: "/doctor/assessments", label: "Assessments", icon: Activity },
-  { path: "/doctor/consultation", label: "Consultation", icon: Stethoscope },
-  { path: "/doctor/prescriptions", label: "Prescriptions", icon: FileText },
-  { path: "/doctor/profile", label: "Profile", icon: User },
-  { path: "/doctor/settings", label: "Settings", icon: SettingsIcon },
+  { path: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },                    // Clinical dashboard
+  { path: "/doctor/appointments", label: "Appointments", icon: Calendar },                      // Visit schedule management
+  { path: "/doctor/patients", label: "Patients", icon: Users },                                 // Authorized patient roster
+  { path: "/doctor/assessments", label: "Assessments", icon: Activity },                        // Patient AI assessment context
+  { path: "/doctor/consultation", label: "Consultation", icon: Stethoscope },                    // Active consultation manager
+  { path: "/doctor/prescriptions", label: "Prescriptions", icon: FileText },                   // Digital prescriptions suite
+  { path: "/doctor/profile", label: "Profile", icon: User },                                     // Clinician details
+  { path: "/doctor/settings", label: "Settings", icon: SettingsIcon },                           // Password & account settings
 ];
 
+// =========================================================================================
+// DOCTOR CLINICIAN APPLICATION SHELL (DoctorAppShell)
+// Provides the dedicated workstation frame for medical specialists:
+// - Navigation sidebar configured with clinician tools and brand identity
+// - Header with theme toggling and doctor profile menu
+// - 5-minute inactivity session expiration protection
+// - Server-Sent Events (SSE) listener updating appointments and assessments in real time
+// =========================================================================================
 export const DoctorAppShell = () => {
-  const navigate = useNavigate();
-  const utils = trpc.useUtils();
-  const { theme, toggleTheme } = useTheme();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const navigate = useNavigate();                                                               // Router navigation hook
+  const utils = trpc.useUtils();                                                                // Cache invalidator
+  const { theme, toggleTheme } = useTheme();                                                    // Theme toggle hook
+  const [isMobileOpen, setIsMobileOpen] = useState(false);                                      // Mobile drawer open state
+  
+  // Query active clinician session
   const session = trpc.doctorAuth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
+  
+  // Clinician logout mutation
   const logoutMutation = trpc.doctorAuth.logout.useMutation({
     onSuccess: async () => {
-      utils.doctorAuth.me.setData(undefined, null);
-      await utils.doctorWorkspace.invalidate();
-      navigate("/doctor/login", { replace: true });
+      utils.doctorAuth.me.setData(undefined, null);                                             // Clear auth cache
+      await utils.doctorWorkspace.invalidate();                                                 // Invalidate workspace cache
+      navigate("/doctor/login", { replace: true });                                             // Redirect to doctor login
     },
   });
-  useDoctorRealtime(Boolean(session.data));
 
+  useDoctorRealtime(Boolean(session.data));                                                     // Subscribe to real-time doctor events
+
+  // Handle logout action
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     await logoutMutation.mutateAsync();
   };
 
-  const closeMobile = () => setIsMobileOpen(false);
+  const closeMobile = () => setIsMobileOpen(false);                                             // Close mobile sidebar
 
+  // Close mobile drawer on Escape key
   useEffect(() => {
     if (!isMobileOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,6 +70,7 @@ export const DoctorAppShell = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMobileOpen]);
 
+  // Automatic inactivity auto-logout protection (5 minutes)
   useEffect(() => {
     if (!session.data || typeof window === 'undefined') return;
 
@@ -73,13 +89,17 @@ export const DoctorAppShell = () => {
     });
   }, [session.data, logoutMutation, navigate]);
 
+  // Loading skeleton screen
   if (session.isLoading) return (
     <main className="doctor-content">
       <div className="container"><p>Verifying clinician session…</p></div>
     </main>
   );
+
+  // Redirect to login if doctor session is absent
   if (!session.data) return <Navigate to="/doctor/login" replace />;
 
+  // Calculate doctor initials for avatar display
   const initials = (session.data?.displayName?.trim() || 'Doctor')
     .split(/\s+/)
     .filter(Boolean)
@@ -90,6 +110,7 @@ export const DoctorAppShell = () => {
 
   return (
     <div className="app-layout">
+      {/* Mobile backdrop dim overlay */}
       {isMobileOpen && (
         <button
           type="button"
@@ -99,17 +120,20 @@ export const DoctorAppShell = () => {
         />
       )}
 
+      {/* Navigation Sidebar */}
       <aside
         id="doctor-sidebar"
         className={`app-sidebar ${isMobileOpen ? 'is-open' : ''}`}
         aria-label="Doctor navigation"
       >
+        {/* Brand logo header */}
         <div className="app-sidebar-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)' }}>
           <NavLink to="/doctor/dashboard" onClick={closeMobile} className="app-sidebar-brand-link" aria-label="LifeLink clinician home" style={{ display: 'flex', alignItems: 'center' }}>
             <LifeLinkLogo className="lifelink-logo-sidebar lifelink-logo-sidebar-patient" style={{ width: '165px', height: 'auto' }} />
           </NavLink>
         </div>
 
+        {/* Doctor workspace navigation links */}
         <nav className="app-sidebar-nav" style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, overflowY: 'auto' }}>
           {navItems.map(({ path, label, icon: Icon }) => (
             <NavLink
@@ -137,6 +161,7 @@ export const DoctorAppShell = () => {
           ))}
         </nav>
 
+        {/* Logout button */}
         <div style={{ padding: '16px 12px', borderTop: '1px solid var(--color-border)' }}>
           <button
             type="button"
@@ -156,9 +181,12 @@ export const DoctorAppShell = () => {
         </div>
       </aside>
 
+      {/* Main Viewport Content Area */}
       <main className="app-main">
+        {/* Top App Header */}
         <header className="app-header">
           <div className="app-header-context">
+            {/* Mobile menu button */}
             <button
               type="button"
               className="app-mobile-menu-button"
@@ -175,12 +203,13 @@ export const DoctorAppShell = () => {
             </NavLink>
           </div>
 
+          {/* Header controls */}
           <div className="app-header-controls">
             <button className="icon-btn" aria-label="Toggle theme" onClick={toggleTheme} title="Toggle theme">
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
 
-            {/* Notification Bell — no hardcoded count */}
+            {/* Notification bell */}
             <button
               className="icon-btn"
               aria-label="Notifications"
@@ -189,7 +218,7 @@ export const DoctorAppShell = () => {
               <Bell size={19} color="var(--color-text-muted)" />
             </button>
 
-            {/* Doctor Profile Pill */}
+            {/* Doctor Profile monogram badge */}
             <button
               type="button"
               onClick={() => navigate('/doctor/profile')}
@@ -204,6 +233,7 @@ export const DoctorAppShell = () => {
           </div>
         </header>
 
+        {/* Dynamic nested doctor view content */}
         <div className="app-content">
           <Outlet />
         </div>

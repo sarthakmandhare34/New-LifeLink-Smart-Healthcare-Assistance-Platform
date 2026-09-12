@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
-import { Outlet, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../_core/hooks/useAuth';
-import { LifeLinkLogo } from '../brand/LifeLinkLogo';
-import { usePatientRealtime } from '../../hooks/usePatientRealtime';
-import { trpc } from '../../lib/trpc';
-import { registerPatientInactivityTimer } from '../../hooks/patientInactivity';
-import { toast } from 'sonner';
+import React, { useState } from 'react';                                                  // Core React and state hook
+import { useEffect } from 'react';                                                              // React side-effect hook
+import { Outlet, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';          // Router layout primitives and hooks
+import { useTheme } from '../../context/ThemeContext';                                          // Application theme manager
+import { useAuth } from '../../_core/hooks/useAuth';                                            // Client authentication state
+import { LifeLinkLogo } from '../brand/LifeLinkLogo';                                           // Official brand logo component
+import { usePatientRealtime } from '../../hooks/usePatientRealtime';                            // Real-time patient SSE subscription hook
+import { trpc } from '../../lib/trpc';                                                          // Type-safe tRPC client bridge
+import { registerPatientInactivityTimer } from '../../hooks/patientInactivity';                  // Auto-logout security timer hook
+import { toast } from 'sonner';                                                                 // Toast notification library
 import {
   LayoutDashboard,
   FileHeart,
@@ -26,33 +26,43 @@ import {
   X,
   Bell,
   ChevronDown
-} from 'lucide-react';
+} from 'lucide-react';                                                                          // Comprehensive application iconography
 
+// Canonical navigation items rendered in the patient portal sidebar
 const patientNavigation = [
-  { to: '/patient/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/patient/assessment', label: 'AI Assessment', icon: Activity },
-  { to: '/patient/appointments', label: 'Appointments', icon: Calendar },
-  { to: '/patient/health-passport', label: 'Health Passport', icon: FileHeart },
-  { to: '/patient/medicines', label: 'Medicines', icon: Pill },
-  { to: '/patient/prescriptions', label: 'Prescriptions', icon: FileText },
-  { to: '/patient/specialists', label: 'Specialist Finder', icon: MapPin },
-  { to: '/patient/emergency', label: 'Emergency', icon: TriangleAlert },
-  { to: '/patient/profile', label: 'Profile', icon: User },
-  { to: '/patient/settings', label: 'Settings', icon: SettingsIcon },
+  { to: '/patient/dashboard', label: 'Dashboard', icon: LayoutDashboard },                      // Dashboard landing
+  { to: '/patient/assessment', label: 'AI Assessment', icon: Activity },                        // Symptom triage
+  { to: '/patient/appointments', label: 'Appointments', icon: Calendar },                        // Visit booking & tracking
+  { to: '/patient/health-passport', label: 'Health Passport', icon: FileHeart },                // Medical baseline EHR
+  { to: '/patient/medicines', label: 'Medicines', icon: Pill },                                 // Medicine cabinet
+  { to: '/patient/prescriptions', label: 'Prescriptions', icon: FileText },                     // Digital prescriptions
+  { to: '/patient/specialists', label: 'Specialist Finder', icon: MapPin },                     // Mumbai map directory
+  { to: '/patient/emergency', label: 'Emergency', icon: TriangleAlert },                        // SOS hotline & emergency contacts
+  { to: '/patient/profile', label: 'Profile', icon: User },                                     // Patient demographics
+  { to: '/patient/settings', label: 'Settings', icon: SettingsIcon },                           // Preferences
 ] as const;
 
-export const PATIENT_SIDEBAR_BRAND_LABEL = 'LifeLink patient home';
+export const PATIENT_SIDEBAR_BRAND_LABEL = 'LifeLink patient home';                             // Accessible logo label
 
+// =========================================================================================
+// PATIENT PORTAL APPLICATION SHELL (AppShell)
+// Provides the global responsive layout frame for all patient workspaces:
+// - Fixed/collapsible navigation sidebar with brand logo lockup
+// - Top application header with mobile drawer trigger, theme toggler, and avatar pill
+// - Background auto-logout inactivity monitor (5-minute privacy timeout)
+// - Server-Sent Events (SSE) listener for instantaneous real-time UI updates
+// =========================================================================================
 export const AppShell = () => {
-  const { user, loading, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);
-  const profileQuery = trpc.patientProfile.get.useQuery(undefined, { enabled: Boolean(user) });
-  usePatientRealtime(Boolean(user));
+  const { user, loading, logout } = useAuth();                                                  // Auth session state
+  const { theme, toggleTheme } = useTheme();                                                    // Light/Dark mode state
+  const navigate = useNavigate();                                                               // Router navigation hook
+  const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);                  // Mobile drawer open state
+  const profileQuery = trpc.patientProfile.get.useQuery(undefined, { enabled: Boolean(user) }); // Fetch patient name and avatar
+  usePatientRealtime(Boolean(user));                                                            // Subscribe to real-time SSE updates
 
-  const closeMobileNavigation = () => setIsMobileNavigationOpen(false);
+  const closeMobileNavigation = () => setIsMobileNavigationOpen(false);                         // Close drawer helper
 
+  // Keyboard accessibility: close mobile sidebar on Escape key
   useEffect(() => {
     if (!isMobileNavigationOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -62,6 +72,7 @@ export const AppShell = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isMobileNavigationOpen]);
 
+  // Privacy safeguard: 5-minute inactivity auto-logout monitor
   useEffect(() => {
     if (!user || typeof window === 'undefined') return;
 
@@ -71,15 +82,16 @@ export const AppShell = () => {
       hasExpired = true;
       void (async () => {
         try {
-          await logout();
+          await logout();                                                                       // Invalidate session on server
         } finally {
-          toast.error('You have been signed out after five minutes of inactivity.');
-          navigate('/login', { replace: true });
+          toast.error('You have been signed out after five minutes of inactivity.');            // Show toast
+          navigate('/login', { replace: true });                                                // Redirect to sign in
         }
       })();
     });
   }, [logout, navigate, user]);
 
+  // Loading skeleton screen
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', width: '100%' }}>
@@ -90,16 +102,19 @@ export const AppShell = () => {
     );
   }
 
+  // Redirect unauthenticated visitors to login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  // User logout click handler
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     await logout();
     navigate('/login');
   };
 
+  // Derive initials for avatar fallback
   const displayName = profileQuery.data?.name?.trim() || user?.name?.trim() || 'Patient';
   const initials = displayName
     .split(/\s+/)
@@ -111,6 +126,7 @@ export const AppShell = () => {
 
   return (
     <div className="app-layout">
+      {/* Mobile backdrop dim overlay */}
       {isMobileNavigationOpen && (
         <button
           type="button"
@@ -120,17 +136,20 @@ export const AppShell = () => {
         />
       )}
 
+      {/* Navigation Sidebar */}
       <aside
         id="patient-sidebar"
         className={`app-sidebar ${isMobileNavigationOpen ? 'is-open' : ''}`}
         aria-label="Patient navigation"
       >
+        {/* Brand logo header */}
         <div className="app-sidebar-header" style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border)' }}>
           <NavLink to="/patient/dashboard" onClick={closeMobileNavigation} className="app-sidebar-brand-link" aria-label={PATIENT_SIDEBAR_BRAND_LABEL} style={{ display: 'flex', alignItems: 'center' }}>
             <LifeLinkLogo className="lifelink-logo-sidebar lifelink-logo-sidebar-patient" style={{ width: '165px', height: 'auto' }} />
           </NavLink>
         </div>
 
+        {/* Navigation links */}
         <nav className="app-sidebar-nav" style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, overflowY: 'auto' }}>
           {patientNavigation.map(({ to, label, icon: Icon }) => (
             <NavLink 
@@ -157,6 +176,7 @@ export const AppShell = () => {
           ))}
         </nav>
 
+        {/* Logout button at bottom of sidebar */}
         <div style={{ padding: '16px 12px', borderTop: '1px solid var(--color-border)' }}>
           <button
             type="button"
@@ -183,9 +203,12 @@ export const AppShell = () => {
         </div>
       </aside>
 
+      {/* Main Viewport Content Area */}
       <main className="app-main" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Top App Header */}
         <header className="app-header">
           <div className="app-header-context">
+            {/* Mobile hamburger menu toggle */}
             <button
               type="button"
               className="app-mobile-menu-button"
@@ -202,17 +225,18 @@ export const AppShell = () => {
             </NavLink>
           </div>
 
+          {/* Header controls: theme toggle, notifications, profile pill */}
           <div className="app-header-controls">
             <button className="icon-btn" aria-label="Toggle theme" onClick={toggleTheme} title="Toggle theme">
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
 
-            {/* Notification Bell — count only shown when backed by real data */}
+            {/* Notification bell */}
             <button className="icon-btn" aria-label="Notifications" style={{ position: 'relative', background: 'var(--color-background)', width: '40px', height: '40px', borderRadius: '50%', display: 'grid', placeItems: 'center', border: '1px solid var(--color-border)', cursor: 'pointer' }}>
               <Bell size={19} color="var(--color-text-muted)" />
             </button>
 
-            {/* User Profile Pill */}
+            {/* User Profile avatar badge */}
             <button 
               type="button" 
               onClick={() => navigate('/patient/profile')} 
@@ -231,6 +255,7 @@ export const AppShell = () => {
           </div>
         </header>
 
+        {/* Dynamic nested page content rendered via React Router */}
         <div className="app-content">
           <Outlet />
         </div>
