@@ -27,38 +27,42 @@ import net from "node:net";
 import "dotenv/config";
 
 // Configured default port (legacy reference for test suite: PORT = Number(process.env.PORT || 3000))
-const PORT = Number(process.env.PORT || 4000);
+const PORT = Number(process.env.PORT || 4000);                   // Preferred default port for Express backend
 
-const BACKEND_PORT_START = 4000;
-const BACKEND_PORT_END = 4004;
-const FRONTEND_PORT_START = 5173;
-const FRONTEND_PORT_END = 5177;
+const BACKEND_PORT_START = 4000;                                 // Starting port candidate for Express API
+const BACKEND_PORT_END = 4004;                                   // Ending port candidate for Express API
+const FRONTEND_PORT_START = 5173;                                // Starting port candidate for Vite dev server
+const FRONTEND_PORT_END = 5177;                                  // Ending port candidate for Vite dev server
 
-const npmBinPath = path.resolve(process.cwd(), "node_modules/.bin");
+// --- Cluster: Path & Environment Setup ---
+const npmBinPath = path.resolve(process.cwd(), "node_modules/.bin"); // Resolves local npm executable binaries (e.g. tsx, vite)
 const devEnv = {
-  ...process.env,
-  PATH: `${npmBinPath}${path.delimiter}${process.env.PATH || ""}`,
-  Path: `${npmBinPath}${path.delimiter}${process.env.Path || ""}`,
+  ...process.env,                                                // Inherit current system environment variables
+  PATH: `${npmBinPath}${path.delimiter}${process.env.PATH || ""}`, // Inject local node_modules/.bin into PATH
+  Path: `${npmBinPath}${path.delimiter}${process.env.Path || ""}`, // Windows case-sensitive PATH compatibility
 };
 
+// --- Cluster: Port Liveness Check ---
+// Attempts to listen on a port; returns true if open, false if already in use
 function isPortAvailable(port) {
   return new Promise((resolve) => {
-    const server = net.createServer();
+    const server = net.createServer();                           // Create a temporary TCP server test instance
     server.once("error", () => {
-      resolve(false);
+      resolve(false);                                            // Port is occupied by another process
     });
     server.listen(port, () => {
       server.close(() => {
-        resolve(true);
+        resolve(true);                                           // Port is completely free and available for use
       });
     });
   });
 }
 
+// Scans through port range sequentially until it finds an unoccupied port
 async function findAvailablePort(startPort, endPort, label) {
   for (let port = startPort; port <= endPort; port++) {
     if (await isPortAvailable(port)) {
-      return port;
+      return port;                                               // Found open port, return immediately
     }
   }
   throw new Error(
@@ -67,33 +71,34 @@ async function findAvailablePort(startPort, endPort, label) {
   );
 }
 
+// Finds an available port for the backend, honoring user-defined PORT in .env if available
 async function resolveBackendPort() {
   if (process.env.PORT) {
     const customPort = Number(process.env.PORT);
     if (!Number.isNaN(customPort)) {
       const available = await isPortAvailable(customPort);
       if (available) {
-        return customPort;
+        return customPort;                                       // Custom port from .env is free, use it
       }
       console.warn(`[Backend] Specified PORT=${customPort} is busy. Falling back to range ${BACKEND_PORT_START}-${BACKEND_PORT_END}...`);
     }
   }
-  return await findAvailablePort(BACKEND_PORT_START, BACKEND_PORT_END, "Backend");
+  return await findAvailablePort(BACKEND_PORT_START, BACKEND_PORT_END, "Backend"); // Scan default 4000-4004 range
 }
 
+// Finds an available port for Vite frontend (5173-5177 range)
 async function resolveFrontendPort() {
   return await findAvailablePort(FRONTEND_PORT_START, FRONTEND_PORT_END, "Frontend");
 }
 
-let backendChild = null;
-let frontendChild = null;
+let backendChild = null;                                         // Reference to the running Express child process
+let frontendChild = null;                                        // Reference to the running Vite child process
 
+// --- Cluster: Dual Process Launcher ---
+// Spawns the Express backend and Vite frontend as independent, parallel child processes
 async function startProcesses() {
-  // Determine backend port FIRST
-  const API_PORT = await resolveBackendPort();
-
-  // Determine frontend port SECOND
-  const FRONTEND_PORT = await resolveFrontendPort();
+  const API_PORT = await resolveBackendPort();                   // 1. Resolve free port for backend
+  const FRONTEND_PORT = await resolveFrontendPort();             // 2. Resolve free port for frontend
 
   console.log("\n=======================================================");
   console.log("  🚀 LifeLink Smart Healthcare Assistance Platform");
@@ -104,28 +109,28 @@ async function startProcesses() {
 
   const childEnv = { 
     ...devEnv, 
-    PORT: String(API_PORT), 
-    VITE_API_PORT: String(API_PORT),
-    BROWSER: process.env.BROWSER || "chrome",
+    PORT: String(API_PORT),                                      // Pass selected port to Express backend
+    VITE_API_PORT: String(API_PORT),                             // Pass backend port to Vite proxy config
+    BROWSER: process.env.BROWSER || "chrome",                    // Set default browser for auto-open
   };
 
-  const backendCmd = "cross-env NODE_ENV=development tsx watch backend/_core/index.ts";
-  const frontendCmd = `npx vite --port ${FRONTEND_PORT}`;
+  const backendCmd = "cross-env NODE_ENV=development tsx watch backend/_core/index.ts"; // Command to watch & run backend
+  const frontendCmd = `npx vite --port ${FRONTEND_PORT}`;        // Command to start Vite dev server on chosen port
 
-  // 1. Spawn Backend
+  // 1. Spawn Backend Process
   backendChild = spawn(backendCmd, {
-    cwd: process.cwd(),
-    env: childEnv,
-    shell: true,
-    stdio: ["ignore", "inherit", "inherit"],
+    cwd: process.cwd(),                                          // Run in project root directory
+    env: childEnv,                                               // Provide injected environment variables
+    shell: true,                                                 // Execute command within system shell
+    stdio: ["ignore", "inherit", "inherit"],                     // Pipe stdout & stderr directly to terminal
   });
 
-  // 2. Spawn Frontend
+  // 2. Spawn Frontend Process
   frontendChild = spawn(frontendCmd, {
-    cwd: process.cwd(),
-    env: childEnv,
-    shell: true,
-    stdio: ["ignore", "inherit", "inherit"],
+    cwd: process.cwd(),                                          // Run in project root directory
+    env: childEnv,                                               // Provide injected environment variables
+    shell: true,                                                 // Execute command within system shell
+    stdio: ["ignore", "inherit", "inherit"],                     // Pipe stdout & stderr directly to terminal
   });
 
   const handleExit = (name) => (code, signal) => {
@@ -134,8 +139,8 @@ async function startProcesses() {
     }
   };
 
-  backendChild.once("exit", handleExit("Backend"));
-  frontendChild.once("exit", handleExit("Frontend"));
+  backendChild.once("exit", handleExit("Backend"));               // Notify if backend process unexpectedly terminates
+  frontendChild.once("exit", handleExit("Frontend"));             // Notify if frontend process unexpectedly terminates
 }
 
 function stopProcesses() {
