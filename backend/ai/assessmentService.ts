@@ -158,96 +158,101 @@ CRITICAL CLINICAL RULES FOR GENDER AND AGE:
 - Do NOT answer general knowledge questions, write code, or engage in non-medical chat.`;
 
 export function hasEmergencyPattern(symptoms: string): boolean {
-  return EMERGENCY_PATTERNS.some((pattern) => pattern.test(symptoms.trim()));
+  return EMERGENCY_PATTERNS.some((pattern) => pattern.test(symptoms.trim()));              // Checks symptoms against all life-threatening regexes
 }
 
+// Deterministic response returned immediately when emergency keywords are triggered
 export function emergencyOverride(): AssessmentResult {
   return {
-    urgency: "EMERGENCY",
-    specialty: "Emergency Care",
+    urgency: "EMERGENCY",                                                                  // Highest urgency level
+    specialty: "Emergency Care",                                                           // Direct to Emergency Room
     reason: "A deterministic safety check detected symptom wording that may indicate an emergency. This tool cannot determine severity or make a diagnosis.",
     guidance: "Seek immediate in-person emergency care or contact your local emergency number now. Do not rely on this screen for diagnosis or treatment.",
   };
 }
 
+// Checks if patient input is gibberish, coding queries, or non-medical chat
 export function hasNonMedicalPattern(text: string): boolean {
-  return NON_MEDICAL_PATTERNS.some((pattern) => pattern.test(text.trim()));
+  return NON_MEDICAL_PATTERNS.some((pattern) => pattern.test(text.trim()));                // Checks input against non-medical regex list
 }
 
+// Deterministic response returned when non-medical query is detected
 export function nonMedicalOverride(): AssessmentResult {
   return {
-    urgency: "ERROR",
-    specialty: "Error",
-    reason: "The input is not related to health symptoms.",
-    guidance: "The Input is not related towards the symptoms please try again later",
+    urgency: "ERROR",                                                                      // Error status
+    specialty: "Error",                                                                    // Error category
+    reason: "The input is not related to health symptoms.",                                // Plain reason
+    guidance: "The Input is not related towards the symptoms please try again later",      // Friendly user guidance
   };
 }
 
+// Deterministic response returned when biologically impossible symptoms are reported
 export function biologicalOverride(message: string, age?: number): AssessmentResult {
   return {
-    urgency: "LOW",
-    specialty: age !== undefined && age < 18 ? "Pediatrics" : "General Practice",
+    urgency: "LOW",                                                                        // Low priority
+    specialty: age !== undefined && age < 18 ? "Pediatrics" : "General Practice",          // Pediatrician if child, otherwise GP
     reason: "A deterministic safety check detected symptoms that are biologically impossible for the stated gender.",
-    guidance: message,
+    guidance: message,                                                                     // Educational guidance
   };
 }
 
+// Maps arbitrary clinical text or AI output into one of LifeLink's 12 supported in-system doctor specialties
 export function normalizeSpecialtyToSystem(
   specialty: string,
   age: number,
   urgency: string,
   gender?: string
 ): (typeof ALL_SYSTEM_SPECIALTIES)[number] {
-  if (urgency === "EMERGENCY") return "Emergency Care";
-  if (urgency === "ERROR") return "Error";
-  if (age < 18) return "Pediatrics";
+  if (urgency === "EMERGENCY") return "Emergency Care";                                    // Emergency always routes to Emergency Care
+  if (urgency === "ERROR") return "Error";                                                // Errors route to Error
+  if (age < 18) return "Pediatrics";                                                       // Patients under 18 strictly assigned to Pediatrics
 
-  const lower = specialty.trim().toLowerCase();
-  const isMale = gender ? /^(?:man|male)$/i.test(gender.trim()) : false;
+  const lower = specialty.trim().toLowerCase();                                            // Lowercase specialty string for regex matching
+  const isMale = gender ? /^(?:man|male)$/i.test(gender.trim()) : false;                  // Boolean flag indicating male biology
 
   // Male breast tissue (Gynecomastia), male hormonal disorders, hypogonadism, low testosterone, male infertility -> Endocrinology
   if (/\b(?:gynecomast\w*|male\s+breast\w*|hypogonadism|testosterone|andropause|male\s+infertility)\b/i.test(lower)) {
-    return "Endocrinology";
+    return "Endocrinology";                                                                // Endocrinology manages male hormonal and breast conditions
   }
 
   // Male urological conditions (prostate, testicle, scrotum, penis, erectile dysfunction) -> General Practice
   if (isMale && /\b(?:prostat\w*|testic\w*|penis|penile|scrot\w*|erectile\s+dysfunction|balanitis|phimosis|varicocele|hydrocele|spermatocele)\b/i.test(lower)) {
-    return "General Practice";
+    return "General Practice";                                                             // General Practice handles male urological evaluation
   }
 
-  // Direct exact match
+  // Direct exact match against system specialties list
   const exact = SYSTEM_DOCTOR_SPECIALTIES.find((s) => s.toLowerCase() === lower);
   if (exact) {
-    if (isMale && exact === "Gynecology") return "General Practice";
-    return exact;
+    if (isMale && exact === "Gynecology") return "General Practice";                       // Biological male cannot be routed to Gynecology
+    return exact;                                                                          // Return validated system specialty
   }
 
   // 1. Cardiology (Cardiovascular)
   if (
     /\b(?:cardio\w*|heart(?!burn)\w*|palpitat\w*|arrhythm\w*|tachycard\w*|bradycard\w*|angina\w*|hypertens\w*|blood\s*pressur\w*|coronary\w*|valvular\w*|cholesterol\w*)/i.test(lower)
   ) {
-    return "Cardiology";
+    return "Cardiology";                                                                   // Heart and circulation specialist
   }
 
   // 2. Dermatology (Integumentary)
   if (
     /\b(?:derma\w*|skin\w*|rash\w*|eczema\w*|psoriasis\w*|acne\w*|urticaria\w*|hives\w*|prurit\w*|itch\w*|lesion\w*|melanom\w*|mole\w*|alopecia\w*|scalp\w*|nail\w*|fungal\w*|blister\w*)/i.test(lower)
   ) {
-    return "Dermatology";
+    return "Dermatology";                                                                  // Skin, hair, and nail specialist
   }
 
   // 3. Endocrinology (Hormonal / Metabolic / Gynecomastia / Thyroid / Diabetes / Testicular Hormones)
   if (
     /\b(?:endo\w*|diabet\w*|thyroid\w*|hormon\w*|metabol\w*|adrenal\w*|pituitary\w*|insulin\w*|glucose\w*|goiter\w*|hashimoto\w*|cushing\w*|gynecomast\w*|hypogonadism|testosterone)\b/i.test(lower)
   ) {
-    return "Endocrinology";
+    return "Endocrinology";                                                                // Glands and hormone specialist
   }
 
   // 4. Gastroenterology (Digestive)
   if (
     /\b(?:gastro\w*|digest\w*|stomach\w*|bowel\w*|colon\w*|acid\s*reflux|gerd|heartburn\w*|nausea\w*|vomit\w*|diarrhea\w*|constipat\w*|intestin\w*|liver\w*|hepat\w*|jaundice\w*|ulcer\w*|gastrit\w*|celiac\w*|ibs|crohn\w*)/i.test(lower)
   ) {
-    return "Gastroenterology";
+    return "Gastroenterology";                                                             // Digestive tract, stomach, and liver specialist
   }
 
   // 5. Gynecology (Female Reproductive - Adult biological females only)
@@ -255,67 +260,69 @@ export function normalizeSpecialtyToSystem(
     !isMale &&
     /\b(?:gyne\w*|obste\w*|women\w*|uter\w*|ovar\w*|cervix\w*|cervic\w*|vagin\w*|vulv\w*|pelvic\w*|menstru\w*|period\w*|menopaus\w*|pcos|endometri\w*)/i.test(lower)
   ) {
-    return "Gynecology";
+    return "Gynecology";                                                                   // Female reproductive system specialist
   }
 
   // 6. Neurology (Nervous System)
   if (
     /\b(?:neuro\w*|brain\w*|nerve\w*|headache\w*|migraine\w*|vertigo\w*|dizzi\w*|seizur\w*|epilep\w*|neuropath\w*|numb\w*|tingl\w*|tremor\w*|concuss\w*|parkinson\w*|alzheim\w*|stroke\w*|paralys\w*)/i.test(lower)
   ) {
-    return "Neurology";
+    return "Neurology";                                                                    // Brain and nervous system specialist
   }
 
   // 7. Ophthalmology (Visual System)
   if (
     /\b(?:ophthal\w*|eye\w*|vision\w*|ocular\w*|cornea\w*|retina\w*|glaucoma\w*|cataract\w*|conjunctiv\w*|pink\s*eye|floaters|myopia|astigmat\w*)/i.test(lower)
   ) {
-    return "Ophthalmology";
+    return "Ophthalmology";                                                                // Vision and eye disease specialist
   }
 
   // 8. Orthopedics (Musculoskeletal)
   if (
     /\b(?:ortho\w*|bone\w*|joint\w*|spine\w*|muscl\w*|skelet\w*|fractur\w*|sprain\w*|strain\w*|arthrit\w*|cartilage\w*|ligament\w*|tendon\w*|knee\w*|back\s*pain|neck\s*pain|shoulder\w*|hip\w*|sciatica\w*|scoliosis\w*)/i.test(lower)
   ) {
-    return "Orthopedics";
+    return "Orthopedics";                                                                  // Bones, joints, and spine specialist
   }
 
   // 9. Pulmonology (Respiratory)
   if (
     /\b(?:pulmo\w*|lung\w*|respirat\w*|breath\w*|cough\w*|asthma\w*|bronch\w*|pneumon\w*|copd|wheez\w*|emphysema\w*|pleurisy|sleep\s*apnea)/i.test(lower)
   ) {
-    return "Pulmonology";
+    return "Pulmonology";                                                                  // Respiratory and lung disease specialist
   }
 
   // 10. Psychiatry (Mental Health)
   if (
     /\b(?:psych\w*|mental\w*|depress\w*|anxi\w*|bipolar\w*|schizo\w*|phobia\w*|ptsd|trauma\w*|stress\w*|insomnia\w*|panic\w*|obsess\w*|ocd|mood\w*|adhd)/i.test(lower)
   ) {
-    return "Psychiatry";
+    return "Psychiatry";                                                                   // Mental and behavioral health specialist
   }
 
   // 11. Pediatrics (Patients under 18 handled at top, keyword fallback for completeness)
   if (/\b(?:pedia\w*|child\w*|infant\w*|toddler\w*|newborn\w*|adolescen\w*)/i.test(lower)) {
-    return "Pediatrics";
+    return "Pediatrics";                                                                   // Child health specialist
   }
 
   // Default fallback for any general/unlisted conditions (ENT, oncology, nephrology, urology, general malaise)
-  return "General Practice";
+  return "General Practice";                                                               // Primary care physician
 }
 
+// Extracts valid JSON substring from AI model output, removing markdown fences if present
 function cleanJsonString(content: string): string {
-  const trimmed = content.trim();
-  const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
+  const trimmed = content.trim();                                                          // Trim whitespace
+  const firstBrace = trimmed.indexOf("{");                                                 // Locate opening brace
+  const lastBrace = trimmed.lastIndexOf("}");                                              // Locate closing brace
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    return trimmed.slice(firstBrace, lastBrace + 1);
+    return trimmed.slice(firstBrace, lastBrace + 1);                                       // Extract raw JSON object
   }
-  return trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  return trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();          // Strip ```json markdown wrappers
 }
 
+// Validates and transforms raw AI output against Zod schema and system safety rules
 function parseModelContent(content: string | unknown[], input: AssessmentRequest): AssessmentResult {
-  if (typeof content !== "string") throw new Error("Gemini returned a non-text assessment response.");
-  const cleaned = cleanJsonString(content);
-  const parsed = assessmentResultSchema.parse(JSON.parse(cleaned));
+  if (typeof content !== "string") throw new Error("Gemini returned a non-text assessment response."); // Text check
+  const cleaned = cleanJsonString(content);                                                // Extract JSON string
+  const parsed = assessmentResultSchema.parse(JSON.parse(cleaned));                         // Parse & validate with Zod
 
   // Normalize specialty to guarantee it is strictly present in LifeLink's system
   const strictSpecialty = normalizeSpecialtyToSystem(parsed.specialty, input.age, parsed.urgency, input.gender);
@@ -325,8 +332,8 @@ function parseModelContent(content: string | unknown[], input: AssessmentRequest
     // Adolescents (e.g. 10-16): Do not falsely suggest adult pregnancy for general pubertal menstrual irregularities
     if (input.age <= 16 && /\bpregnan/i.test(parsed.reason + " " + parsed.guidance)) {
       return {
-        urgency: "LOW",
-        specialty: "Pediatrics",
+        urgency: "LOW",                                                                    // Safe triage
+        specialty: "Pediatrics",                                                           // Pediatric specialist
         reason: `In adolescents aged ${input.age}, missed or irregular menstrual cycles accompanied by fatigue or mild nausea are very commonly due to normal pubertal development, anovulatory cycles during the early post-menarche years, hormonal adjustments, stress, or nutritional factors.`,
         guidance: "Discuss these symptoms with a parent or guardian and consult a pediatrician or adolescent health specialist for an age-appropriate evaluation.",
       };
@@ -335,13 +342,13 @@ function parseModelContent(content: string | unknown[], input: AssessmentRequest
 
   // Gender safeguard for Men
   if (input.gender.toLowerCase() === "man" || input.gender.toLowerCase() === "male") {
-    const fullText = (parsed.reason + " " + parsed.guidance + " " + input.symptoms).toLowerCase();
+    const fullText = (parsed.reason + " " + parsed.guidance + " " + input.symptoms).toLowerCase(); // Combined text
     const isMaleValidCondition = /\b(?:gynecomast\w*|male\s+breast\w*|hypogonadism|testosterone|andropause|male\s+infertility|prostat\w*|testic\w*|penis|penile|scrot\w*|erectile\s+dysfunction)\b/i.test(fullText);
 
     if (!isMaleValidCondition && /\bpregnan|menstrua|period|ovary|ovarian|uterine|uterus|cervix|cervical\b/i.test(fullText)) {
       return {
-        urgency: "LOW",
-        specialty: input.age < 18 ? "Pediatrics" : "General Practice",
+        urgency: "LOW",                                                                    // Non-emergency
+        specialty: input.age < 18 ? "Pediatrics" : "General Practice",                      // Route away from gynecology
         reason: "Symptoms involving pregnancy or female reproductive cycles are biologically inconsistent with male anatomy.",
         guidance: "Please review your reported symptoms or consult a general physician for non-gynecological evaluation.",
       };
@@ -349,30 +356,33 @@ function parseModelContent(content: string | unknown[], input: AssessmentRequest
   }
 
   return {
-    urgency: parsed.urgency,
-    specialty: strictSpecialty,
-    reason: parsed.reason,
-    guidance: parsed.guidance,
+    urgency: parsed.urgency,                                                               // Triage urgency
+    specialty: strictSpecialty,                                                            // Validated system doctor specialty
+    reason: parsed.reason,                                                                 // Explanation
+    guidance: parsed.guidance,                                                             // Recommended action
   };
 }
 
+// Formats user input into structured JSON prompt sent to Google Gemini
 function assessmentPrompt(input: AssessmentRequest): string {
   return JSON.stringify({
-    symptoms: input.symptoms,
-    age: input.age,
-    gender: input.gender,
-    existingConditions: input.conditions ?? "",
-    symptomDuration: input.duration,
+    symptoms: input.symptoms,                                                              // Reported symptoms
+    age: input.age,                                                                        // Patient age
+    gender: input.gender,                                                                  // Stated gender
+    existingConditions: input.conditions ?? "",                                            // Medical history
+    symptomDuration: input.duration,                                                       // Duration
     clinicalContext: input.age < 18 ? `Pediatric patient aged ${input.age}. Prioritize pediatric and adolescent health considerations.` : "Adult patient.",
   });
 }
 
+// Calls Google Gemini REST API with schema-guided generation and multi-model fallback cascade
 async function invokeGemini(input: AssessmentRequest): Promise<AssessmentResult> {
-  const apiKey = ENV.geminiApiKey || process.env.GEMINI_API_KEY;
+  const apiKey = ENV.geminiApiKey || process.env.GEMINI_API_KEY;                           // Retrieve Gemini API key from environment
   if (!apiKey) {
     throw new Error("Gemini API key is not configured");
   }
 
+  // List of Gemini models to attempt sequentially in case of rate limits or service deprecation
   const candidateModels = [
     "gemini-3.5-flash-lite",
     "gemini-3.5-flash",
@@ -390,46 +400,47 @@ async function invokeGemini(input: AssessmentRequest): Promise<AssessmentResult>
 
   for (const model of candidateModels) {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, { // Gemini REST endpoint
         method: "POST",
         headers: {
-          "content-type": "application/json",
+          "content-type": "application/json",                                              // JSON payload
         },
         body: JSON.stringify({
           contents: [{
-            parts: [{ text: `${ASSESSMENT_SYSTEM_INSTRUCTION}\n\nPatient-provided information:\n${assessmentPrompt(input)}` }]
+            parts: [{ text: `${ASSESSMENT_SYSTEM_INSTRUCTION}\n\nPatient-provided information:\n${assessmentPrompt(input)}` }] // Combined system prompt and patient data
           }],
           generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: GEMINI_ASSESSMENT_RESPONSE_SCHEMA,
-            temperature: 0.2,
-            maxOutputTokens: 600,
+            responseMimeType: "application/json",                                          // Force JSON mode
+            responseSchema: GEMINI_ASSESSMENT_RESPONSE_SCHEMA,                             // Apply strict schema
+            temperature: 0.2,                                                              // Low temperature for deterministic, clinical responses
+            maxOutputTokens: 600,                                                          // Token cap
           }
         }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
+        const errorText = await response.text();                                           // Capture error body
         lastError = new Error(`Gemini (${model}) request failed: ${response.status} ${errorText}`);
-        continue;
+        continue;                                                                          // Try next candidate model
       }
 
-      const payload = await response.json();
-      const content = payload.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-      return parseModelContent(content, input);
+      const payload = await response.json();                                               // Parse API response
+      const content = payload.candidates?.[0]?.content?.parts?.[0]?.text ?? "";            // Extract generated text
+      return parseModelContent(content, input);                                            // Parse and validate structured output
     } catch (err: any) {
-      lastError = err;
+      lastError = err;                                                                     // Log error and cascade to next model
     }
   }
 
-  throw lastError ?? new Error("All Gemini models failed to process the assessment");
+  throw lastError ?? new Error("All Gemini models failed to process the assessment");      // If all models fail
 }
 
+// Fallback deterministic assessment returned if offline, out of quota, or network unavailable
 export function fallbackAssessment(input: AssessmentRequest): AssessmentResult {
-  const specialty = normalizeSpecialtyToSystem(input.symptoms, input.age, "MODERATE", input.gender);
+  const specialty = normalizeSpecialtyToSystem(input.symptoms, input.age, "MODERATE", input.gender); // Map symptoms using deterministic rules
   return {
-    urgency: "MODERATE",
-    specialty,
+    urgency: "MODERATE",                                                                   // Moderate urgency
+    specialty,                                                                             // System specialty
     reason: "The AI assessment service is currently operating in safe offline decision-support mode. Symptoms were evaluated using deterministic clinical rules.",
     guidance: "Please consult a doctor or specialist for comprehensive in-person evaluation. If symptoms worsen or you experience severe distress, seek immediate emergency medical care.",
   };
