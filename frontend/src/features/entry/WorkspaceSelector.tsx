@@ -143,14 +143,6 @@ export const WorkspaceSelector = () => {
                 </>
               )}
             </Button>
-            <button
-              type="button"
-              className="auth-link-button workspace-secondary-link"
-              onClick={() => openWorkspace("clinician", "/doctor/setup")}
-              disabled={Boolean(switchingTo)}
-            >
-              Clinician account setup
-            </button>
           </Card>
         </div>
 

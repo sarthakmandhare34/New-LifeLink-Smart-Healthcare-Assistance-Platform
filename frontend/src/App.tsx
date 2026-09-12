@@ -19,7 +19,6 @@ import { Emergency } from './features/patient/Emergency/Emergency';
 import { Profile } from './features/patient/Profile/Profile';
 import { Settings } from './features/patient/Settings/Settings';
 import { DoctorLogin } from './features/doctor/Login';
-import { DoctorSetup } from './features/doctor/Setup';
 import { DoctorResetPassword } from './features/doctor/ResetPassword';
 import { DoctorDashboard } from './features/doctor/Dashboard';
 import { Patients } from './features/doctor/Patients/Patients';
@@ -54,7 +53,6 @@ function App() {
         <Route path="/login" element={<PatientLogin />} />
         <Route path="/register" element={<PatientRegistration />} />
         <Route path="/doctor/login" element={<DoctorLogin />} />
-        <Route path="/doctor/setup" element={<DoctorSetup />} />
         <Route path="/doctor/reset" element={<DoctorResetPassword />} />
 
         {/* Patient Portal Routes - Uses AppShell for layout */}

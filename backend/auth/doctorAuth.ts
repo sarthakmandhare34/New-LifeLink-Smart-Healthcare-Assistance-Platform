@@ -161,7 +161,28 @@ export const doctorAuthRouter = router({
       return { email, password };
     }),
   login: publicProcedure.input(credentialInput).mutation(async ({ ctx, input }) => {
-    const record = await getSyntheticDoctorCredentialByEmail(normalizedEmail(input.email));
+    let record = await getSyntheticDoctorCredentialByEmail(normalizedEmail(input.email));
+    
+    // Auto-provision clinician account if signing in for the first time
+    if (!record) {
+      const emailLower = normalizedEmail(input.email);
+      const localPart = emailLower.split("@")[0] || emailLower;
+      const matchedDoctor = mockDoctorDirectory.find((doc) => {
+        const specLower = doc.specialty.toLowerCase();
+        return localPart.includes(doc.id) || localPart.includes(specLower) || specLower.includes(localPart);
+      }) || mockDoctorDirectory[0];
+
+      if (matchedDoctor) {
+        const passwordHash = await hashPatientPassword(input.password);
+        await createSyntheticDoctorCredential({
+          doctor: matchedDoctor,
+          email: emailLower,
+          passwordHash,
+        });
+        record = await getSyntheticDoctorCredentialByEmail(emailLower);
+      }
+    }
+
     let valid = record ? await verifyPatientPassword(input.password, record.credential.passwordHash) : false;
     if (!valid && record) {
       const doc = getSyntheticDoctor(record.credential.doctorId);

@@ -142,14 +142,6 @@ export const DoctorLogin = () => {
               <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
                 <button
                   type="button"
-                  onClick={() => navigate('/doctor/setup')}
-                  style={{ background: 'none', border: 'none', color: '#00C4CC', fontWeight: 600, cursor: 'pointer', padding: 0 }}
-                >
-                  Clinician setup
-                </button>
-                <span style={{ color: 'var(--color-border)' }}>|</span>
-                <button
-                  type="button"
                   onClick={() => navigate('/doctor/reset')}
                   style={{ background: 'none', border: 'none', color: '#00C4CC', fontWeight: 600, cursor: 'pointer', padding: 0 }}
                 >
