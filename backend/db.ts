@@ -42,31 +42,30 @@ import { publishDoctorEvent, publishPatientEvent, type DoctorEventType, type Pat
 import { storageGet } from "./storage";
 
 /** Singleton instance of Drizzle ORM */
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: ReturnType<typeof drizzle> | null = null;                // Cached MySQL database client instance
 
-/**
- * Lazily creates and returns the Drizzle database instance.
- * Using lazy initialization ensures that build tools and scripts can run
- * even if the database is not currently connected.
- */
+// --- Cluster: Database Connection Manager ---
+// Lazily creates and returns the Drizzle database instance when needed.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  if (!_db && process.env.DATABASE_URL) {                        // Only initialize if not already connected
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _db = drizzle(process.env.DATABASE_URL);                   // Establish connection pool using DATABASE_URL
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.warn("[Database] Failed to connect:", error);      // Log friendly warning if MySQL is unreachable
       _db = null;
     }
   }
-  return _db;
+  return _db;                                                    // Returns Drizzle client or null if offline
 }
 
+// --- Cluster: User Upsert (Create or Update) ---
+// Inserts a new user record or updates existing fields (e.g. lastSignedIn) on duplicate openId
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
-    throw new Error("User openId is required for upsert");
+    throw new Error("User openId is required for upsert");        // openId is mandatory for every user account
   }
 
-  const db = await getDb();
+  const db = await getDb();                                      // Fetch active database client
   if (!db) {
     console.warn("[Database] Cannot upsert user: database not available");
     return;
@@ -74,43 +73,44 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
   try {
     const values: InsertUser = {
-      openId: user.openId,
+      openId: user.openId,                                       // Primary identity key
     };
-    const updateSet: Record<string, unknown> = {};
+    const updateSet: Record<string, unknown> = {};               // Fields to update if user already exists
 
-    const textFields = ["name", "email", "loginMethod"] as const;
+    const textFields = ["name", "email", "loginMethod"] as const; // Standard user metadata fields
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
       const value = user[field];
       if (value === undefined) return;
-      const normalized = value ?? null;
+      const normalized = value ?? null;                          // Convert undefined to SQL-safe null
       values[field] = normalized;
-      updateSet[field] = normalized;
+      updateSet[field] = normalized;                             // Update field on duplicate
     };
 
     textFields.forEach(assignNullable);
 
     if (user.lastSignedIn !== undefined) {
       values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
+      updateSet.lastSignedIn = user.lastSignedIn;                // Update sign-in timestamp
     }
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
+      values.role = 'admin';                                     // Automatically grant admin rights to platform owner
       updateSet.role = 'admin';
     }
 
     if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
+      values.lastSignedIn = new Date();                          // Default to current timestamp if missing
     }
 
     if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
+      updateSet.lastSignedIn = new Date();                       // Always touch lastSignedIn on update
     }
 
+    // Executes MySQL INSERT ... ON DUPLICATE KEY UPDATE query
     await db.insert(users).values(values).onDuplicateKeyUpdate({
       set: updateSet,
     });
@@ -120,6 +120,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 }
 
+// Finds a user account by their unique openId
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {
@@ -127,7 +128,7 @@ export async function getUserByOpenId(openId: string) {
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1); // SELECT * FROM users WHERE openId = ? LIMIT 1
 
   return result.length > 0 ? result[0] : undefined;
 }
@@ -223,83 +224,92 @@ export async function getPatientAssessments(userId: number) {
     .orderBy(desc(patientAssessments.createdAt));
 }
 
+// --- Cluster: Native Patient Registration ---
+// Registers a new patient with email & password, creates initial health passport profile
 export async function createNativePatient(input: { name: string; email: string; passwordHash: string }) {
-  const db = await getDb();
+  const db = await getDb();                                      // Obtain active database connection
   if (!db) throw new Error("Database is not available");
 
-  const existing = await getNativePatientByEmail(input.email);
-  if (existing) return null;
+  const existing = await getNativePatientByEmail(input.email);   // Prevent duplicate registration with same email
+  if (existing) return null;                                     // Email already registered, abort safely
 
-  const openId = `native:${randomUUID()}`;
+  const openId = `native:${randomUUID()}`;                       // Generate unique UUID-based openId for native patient
+  // 1. Create user account record
   await db.insert(users).values({
     openId,
     name: input.name,
     email: input.email,
-    loginMethod: "native-patient",
-    role: "user",
-    lastSignedIn: new Date(),
+    loginMethod: "native-patient",                               // Mark identity as native password-authenticated
+    role: "user",                                                // Standard patient role
+    lastSignedIn: new Date(),                                    // Record registration timestamp
   });
 
-  const user = await getUserByOpenId(openId);
+  const user = await getUserByOpenId(openId);                    // Retrieve newly created user from database
   if (!user) throw new Error("Patient account could not be created");
 
+  // 2. Insert secure credential row (storing salted password hash, NEVER plain text!)
   await db.insert(patientCredentials).values({
-    userId: user.id,
+    userId: user.id,                                             // Link to user account
     email: input.email,
-    passwordHash: input.passwordHash,
+    passwordHash: input.passwordHash,                            // Salted hash
   });
+  // 3. Initialize empty Health Passport profile for the patient
   await db.insert(patientProfiles).values({
     userId: user.id,
-    allergiesJson: "[]",
-    conditionsJson: "[]",
+    allergiesJson: "[]",                                         // Empty initial allergy list
+    conditionsJson: "[]",                                        // Empty initial preexisting conditions list
   });
-  return user;
+  return user;                                                   // Return fully provisioned patient user object
 }
 
+// --- Cluster: Patient Lookup by Email ---
+// Supports flexible lookup by email, username, or @lifelink.com shorthand
 export async function getNativePatientByEmail(identifier: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
 
-  const normalized = identifier.trim().toLowerCase();
+  const normalized = identifier.trim().toLowerCase();            // Normalize input for case-insensitive lookup
 
   const rows = await db
-    .select({ user: users, credential: patientCredentials })
+    .select({ user: users, credential: patientCredentials })     // Join users with their credentials
     .from(patientCredentials)
     .innerJoin(users, eq(patientCredentials.userId, users.id))
     .where(
       or(
-        eq(patientCredentials.email, normalized),
-        eq(users.name, normalized),
-        eq(patientCredentials.email, `${normalized}@lifelink.com`)
+        eq(patientCredentials.email, normalized),                // Exact email match
+        eq(users.name, normalized),                              // Username match
+        eq(patientCredentials.email, `${normalized}@lifelink.com`) // Convenience suffix match
       )
     )
     .limit(1);
-  return rows[0] ?? null;
+  return rows[0] ?? null;                                        // Return matched user + credential or null
 }
 
-/** Ensures the signed synthetic workstation identity is a real, stable backend user. */
+// --- Cluster: Clinician User Provisioning ---
+// Ensures a controlled Mumbai specialist doctor exists as a verified "doctor" user in the MySQL database
 export async function findOrCreateSyntheticDoctorUser(doctor: MockDoctorDirectoryEntry, email?: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const openId = `synthetic-doctor:${doctor.id}`;
-  const displayName = doctorDisplayName(doctor);
-  const existing = await getUserByOpenId(openId);
+  const openId = `synthetic-doctor:${doctor.id}`;                // Stable openId prefix for doctors (e.g. synthetic-doctor:doctor-cardio-1)
+  const displayName = doctorDisplayName(doctor);                 // Human-readable clinician title (e.g. "Controlled Cardiology Specialist")
+  const existing = await getUserByOpenId(openId);                // Check if doctor user record already exists
   if (existing) {
     if (existing.role !== "doctor" || existing.name !== displayName || (email && existing.email !== email)) {
       await db
         .update(users)
         .set({ role: "doctor", name: displayName, email: email ?? existing.email, lastSignedIn: new Date() })
-        .where(eq(users.id, existing.id));
+        .where(eq(users.id, existing.id));                       // Keep doctor details synchronized with mock directory
     }
     return { ...existing, name: displayName, role: "doctor" as const, email: email ?? existing.email };
   }
 
+  // Insert new doctor user record if not yet created
   await db.insert(users).values({
     openId,
     name: displayName,
     email: email ?? null,
-    loginMethod: "synthetic-clinician",
-    role: "doctor",
+    loginMethod: "synthetic-clinician",                           // Internal clinician workstation auth method
+    role: "doctor",                                              // Elevated clinician permissions
     lastSignedIn: new Date(),
   });
   const user = await getUserByOpenId(openId);
@@ -307,43 +317,46 @@ export async function findOrCreateSyntheticDoctorUser(doctor: MockDoctorDirector
   return user;
 }
 
+// --- Cluster: Specialty Nicknames & Aliases ---
+// Maps informal shorthand emails (like "cardio@lifelink.com" or "derma@lifelink.com")
+// to their official department names so doctor sign-in is intuitive and flexible.
 const SPECIALTY_ROLE_ALIASES: Record<string, string> = {
-  cardio: "cardiology",
+  cardio: "cardiology",                                          // Cardiology alias
   cardiologist: "cardiology",
   cardiology: "cardiology",
-  derma: "dermatology",
+  derma: "dermatology",                                          // Dermatology alias
   dermatologist: "dermatology",
   dermatology: "dermatology",
-  ortho: "orthopedics",
+  ortho: "orthopedics",                                          // Orthopedics alias
   orthopedist: "orthopedics",
   orthopedics: "orthopedics",
-  neuro: "neurology",
+  neuro: "neurology",                                            // Neurology alias
   neurologist: "neurology",
   neurology: "neurology",
-  pedia: "pediatrics",
+  pedia: "pediatrics",                                           // Pediatrics alias
   pediatrician: "pediatrics",
   pediatrics: "pediatrics",
-  gp: "generalpractice",
+  gp: "generalpractice",                                         // General Practice alias
   general: "generalpractice",
   generalpractitioner: "generalpractice",
   generalphysician: "generalpractice",
   generalpractice: "generalpractice",
-  ophthal: "ophthalmology",
+  ophthal: "ophthalmology",                                      // Ophthalmology alias
   ophthalmologist: "ophthalmology",
   ophthalmology: "ophthalmology",
-  gastro: "gastroenterology",
+  gastro: "gastroenterology",                                    // Gastroenterology alias
   gastroenterologist: "gastroenterology",
   gastroenterology: "gastroenterology",
-  psych: "psychiatry",
+  psych: "psychiatry",                                           // Psychiatry alias
   psychiatrist: "psychiatry",
   psychiatry: "psychiatry",
-  endo: "endocrinology",
+  endo: "endocrinology",                                         // Endocrinology alias
   endocrinologist: "endocrinology",
   endocrinology: "endocrinology",
-  pulmo: "pulmonology",
+  pulmo: "pulmonology",                                          // Pulmonology alias
   pulmonologist: "pulmonology",
   pulmonology: "pulmonology",
-  gynae: "gynecology",
+  gynae: "gynecology",                                           // Gynecology alias
   gynecologist: "gynecology",
   gynecology: "gynecology",
 };
