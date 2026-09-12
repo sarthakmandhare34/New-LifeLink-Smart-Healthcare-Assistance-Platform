@@ -1,87 +1,93 @@
-export type Role = 'patient' | 'doctor';
+// =========================================================================================
+// FRONTEND DOMAIN TYPE DEFINITIONS
+// Canonical TypeScript models representing patients, doctors, appointments, prescriptions,
+// medications, and AI assessments throughout the client application.
+// =========================================================================================
+
+export type Role = 'patient' | 'doctor';                                                        // Dual portal user authorization roles
 
 export interface User {
-  id: string;
-  role: Role;
-  name: string;
-  email: string;
-  avatarUrl?: string;
+  id: string;                                                                                  // Unique user ID
+  role: Role;                                                                                   // Role type
+  name: string;                                                                                 // Display name
+  email: string;                                                                                // Email address
+  avatarUrl?: string;                                                                           // Profile picture URL
 }
 
 export interface EmergencyContact {
-  id: string;
-  name: string;
-  relationship: string;
-  phone: string;
+  id: string;                                                                                  // Emergency contact identifier
+  name: string;                                                                                 // Contact full name
+  relationship: string;                                                                         // Relationship to patient
+  phone: string;                                                                                // Phone number
 }
 
 export interface Patient extends User {
-  role: 'patient';
-  bloodGroup: string;
-  allergies: string[];
-  conditions: string[];
-  emergencyContacts: EmergencyContact[];
+  role: 'patient';                                                                              // Locked role discriminant
+  bloodGroup: string;                                                                           // ABO/Rh blood type
+  allergies: string[];                                                                          // Known allergen sensitivities
+  conditions: string[];                                                                         // Chronic medical conditions
+  emergencyContacts: EmergencyContact[];                                                        // Trusted contact list
   settings?: {
-    aptReminders: boolean;
-    medAlerts: boolean;
+    aptReminders: boolean;                                                                      // Appointment notification toggle
+    medAlerts: boolean;                                                                         // Medicine inventory alert toggle
   };
 }
 
 export interface Doctor extends User {
-  role: 'doctor';
-  specialty: string;
-  hospital: string;
-  location: string;
-  isVerified: boolean;
+  role: 'doctor';                                                                               // Locked role discriminant
+  specialty: string;                                                                            // Medical triage specialty
+  hospital: string;                                                                             // Clinical hospital or center
+  location: string;                                                                             // Geographic locality
+  isVerified: boolean;                                                                          // Verification status
 }
 
-export type AppointmentStatus = 'Requested' | 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
+export type AppointmentStatus = 'Requested' | 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled'; // Appointment lifecycle states
 
 export interface Appointment {
-  id: string;
-  patientId: string;
-  doctorId: string;
-  date: string; // ISO string
-  time: string; // e.g. "10:00 AM"
-  status: AppointmentStatus;
+  id: string;                                                                                  // Appointment ID
+  patientId: string;                                                                            // Patient ID
+  doctorId: string;                                                                             // Doctor ID
+  date: string;                                                                                 // ISO date string
+  time: string;                                                                                 // Time string
+  status: AppointmentStatus;                                                                    // Current status
 }
 
 export interface Medicine {
-  id: string;
-  patientId: string;
-  name: string;
-  dosage: string;
-  frequency: string;
-  schedule: string;
-  startDate: string;
-  endDate: string;
-  quantity: number;
-  expiry: string; // ISO string
-  lowStock: boolean;
+  id: string;                                                                                  // Medicine ID
+  patientId: string;                                                                            // Owner patient ID
+  name: string;                                                                                 // Drug name
+  dosage: string;                                                                               // Strength
+  frequency: string;                                                                            // Cadence
+  schedule: string;                                                                             // Daily timing
+  startDate: string;                                                                            // Start date
+  endDate: string;                                                                              // End date
+  quantity: number;                                                                             // Remaining count
+  expiry: string;                                                                               // Expiry date
+  lowStock: boolean;                                                                            // Low inventory flag
 }
 
 export interface Prescription {
-  id: string;
-  patientId: string;
-  doctorId: string;
-  date: string;
-  status: 'UNSIGNED / CONTROLLED WORKSPACE' | 'SIGNED — CONTROLLED STATE';
-  medicines: { name: string; dosage: string; instructions: string }[];
-  clinicalNotes: string;
-  integrityReference: string;
+  id: string;                                                                                  // Prescription ID
+  patientId: string;                                                                            // Patient ID
+  doctorId: string;                                                                             // Prescribing clinician ID
+  date: string;                                                                                 // Date issued
+  status: 'UNSIGNED / CONTROLLED WORKSPACE' | 'SIGNED — CONTROLLED STATE';                     // Verification status
+  medicines: { name: string; dosage: string; instructions: string }[];                          // Drug items
+  clinicalNotes: string;                                                                        // Notes
+  integrityReference: string;                                                                   // Cryptographic SHA256 integrity hash
 }
 
 export interface Assessment {
-  id: string;
-  patientId: string;
-  date: string;
-  symptoms: string;
-  age: number;
-  gender: string;
-  conditions: string;
-  duration: string;
-  urgency: 'LOW' | 'MODERATE' | 'EMERGENCY' | 'ERROR';
-  reason: string;
-  specialty: string;
-  guidance: string;
+  id: string;                                                                                  // Assessment ID
+  patientId: string;                                                                            // Patient ID
+  date: string;                                                                                 // Assessment timestamp
+  symptoms: string;                                                                             // Reported symptoms
+  age: number;                                                                                  // Age
+  gender: string;                                                                               // Biological gender
+  conditions: string;                                                                           // Pre-existing conditions
+  duration: string;                                                                             // Symptom duration
+  urgency: 'LOW' | 'MODERATE' | 'EMERGENCY' | 'ERROR';                                          // Triage urgency
+  reason: string;                                                                               // Clinical reasoning
+  specialty: string;                                                                            // Recommended specialty
+  guidance: string;                                                                             // Triage advice
 }

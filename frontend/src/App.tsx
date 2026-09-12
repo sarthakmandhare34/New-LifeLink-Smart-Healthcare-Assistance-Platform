@@ -46,49 +46,49 @@ import { WorkspaceSelector } from './features/entry/WorkspaceSelector';
  */
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <BrowserRouter>                                                                        {/* HTML5 history pushState navigation container */}
+      <Routes>                                                                             {/* Declarative client-side route matcher */}
         {/* Public Entry Routes */}
-        <Route path="/" element={<WorkspaceSelector />} />
-        <Route path="/login" element={<PatientLogin />} />
-        <Route path="/register" element={<PatientRegistration />} />
-        <Route path="/doctor/login" element={<DoctorLogin />} />
-        <Route path="/doctor/reset" element={<DoctorResetPassword />} />
+        <Route path="/" element={<WorkspaceSelector />} />                                  {/* Portal selector for patient vs clinician workspace */}
+        <Route path="/login" element={<PatientLogin />} />                                  {/* Patient sign-in form */}
+        <Route path="/register" element={<PatientRegistration />} />                        {/* Patient new account registration form */}
+        <Route path="/doctor/login" element={<DoctorLogin />} />                            {/* Clinician credential authentication screen */}
+        <Route path="/doctor/reset" element={<DoctorResetPassword />} />                    {/* Administrative clinician password reset */}
 
         {/* Patient Portal Routes - Uses AppShell for layout */}
-        <Route path="/patient" element={<AppShell />}>
-          <Route path="dashboard" element={<PatientDashboard />} />
-          <Route path="health-passport" element={<HealthPassport />} />
-          <Route path="assessment" element={<AIAssessment />} />
-          <Route path="specialists" element={<SpecialistFinder />} />
-          <Route path="appointments" element={<Appointments />} />
-          <Route path="medicines" element={<MedicineCabinet />} />
-          <Route path="prescriptions" element={<Prescriptions />} />
-          <Route path="emergency" element={<Emergency />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="settings" element={<Settings />} />
+        <Route path="/patient" element={<AppShell />}>                                      {/* Patient navigation shell with sidebar & header */}
+          <Route path="dashboard" element={<PatientDashboard />} />                        {/* Patient home dashboard with live statistics */}
+          <Route path="health-passport" element={<HealthPassport />} />                    {/* Emergency medical ID card & patient profile */}
+          <Route path="assessment" element={<AIAssessment />} />                            {/* AI symptom triage & specialist recommendation */}
+          <Route path="specialists" element={<SpecialistFinder />} />                      {/* Mumbai railway corridor specialist discovery */}
+          <Route path="appointments" element={<Appointments />} />                          {/* Patient consultation booking & appointment management */}
+          <Route path="medicines" element={<MedicineCabinet />} />                          {/* Medication tracking & dosage adherence */}
+          <Route path="prescriptions" element={<Prescriptions />} />                        {/* Digital prescriptions issued by clinicians */}
+          <Route path="emergency" element={<Emergency />} />                                {/* Quick-dial SOS emergency contacts & alerts */}
+          <Route path="profile" element={<Profile />} />                                    {/* Personal account & avatar settings */}
+          <Route path="settings" element={<Settings />} />                                  {/* Appearance & application preferences */}
           {/* Default redirect for /patient */}
-          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />                     {/* Redirect /patient to /patient/dashboard */}
         </Route>
 
         {/* Doctor Portal Routes - Uses DoctorAppShell for layout */}
-        <Route path="/doctor" element={<DoctorAppShell />}>
-          <Route path="dashboard" element={<DoctorDashboard />} />
-          <Route path="patients" element={<Patients />} />
-          <Route path="patients/:patientId" element={<PatientView />} />
-          <Route path="appointments" element={<DoctorAppointments />} />
-          <Route path="consultation" element={<Consultation />} />
-          <Route path="prescriptions" element={<DoctorPrescriptions />} />
-          <Route path="prescriptions/create" element={<DoctorPrescriptions />} />
-          <Route path="assessments" element={<Assessments />} />
-          <Route path="profile" element={<DoctorProfile />} />
-          <Route path="settings" element={<DoctorSettings />} />
+        <Route path="/doctor" element={<DoctorAppShell />}>                                {/* Clinician workspace layout shell */}
+          <Route path="dashboard" element={<DoctorDashboard />} />                          {/* Doctor clinic dashboard with patient queues */}
+          <Route path="patients" element={<Patients />} />                                  {/* Assigned patient roster */}
+          <Route path="patients/:patientId" element={<PatientView />} />                    {/* Full medical record for single patient */}
+          <Route path="appointments" element={<DoctorAppointments />} />                    {/* Consultation scheduling & status updates */}
+          <Route path="consultation" element={<Consultation />} />                          {/* Live clinical examination workspace */}
+          <Route path="prescriptions" element={<DoctorPrescriptions />} />                  {/* Issued prescription archive */}
+          <Route path="prescriptions/create" element={<DoctorPrescriptions />} />           {/* Digital prescription creator */}
+          <Route path="assessments" element={<Assessments />} />                            {/* AI triage reports submitted by patients */}
+          <Route path="profile" element={<DoctorProfile />} />                              {/* Clinician credentials & specialty information */}
+          <Route path="settings" element={<DoctorSettings />} />                            {/* Clinician workspace preferences */}
           {/* Default redirect for /doctor */}
-          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />                     {/* Redirect /doctor to /doctor/dashboard */}
         </Route>
 
         {/* Fallback route for unknown paths */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />                            {/* Catch-all route redirecting back to home selector */}
       </Routes>
     </BrowserRouter>
   );

@@ -1,31 +1,26 @@
-import { OAUTH_STATE_COOKIE, encodeOAuthState } from "@shared/const";
+import { OAUTH_STATE_COOKIE, encodeOAuthState } from "@shared/const";                          // Shared constants and state encoder
 
-export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";                                      // Re-export session cookie parameters
 
-// Start the OAuth login. Call this from an event handler or effect at the
-// moment you want to navigate, e.g. `onClick={() => startLogin()}`.
-//
-// It has SIDE EFFECTS — it mints a one-time nonce, writes the __Host- state
-// cookie, and navigates immediately — so the cookie nonce always matches the
-// `state` it sends. Do NOT call it during render (no `href={startLogin()}` /
-// `loginUrl={...}`): each call overwrites the cookie, so a stray render-phase
-// call would desync it from an in-flight login and the callback would reject it
-// with "invalid oauth state". It returns void by design, so there is no URL to
-// stash across renders.
+// =========================================================================================
+// OAUTH FLOW INITIATOR
+// Dispatches the browser to the centralized OAuth authentication portal.
+// Mints a cryptographic one-time nonce and writes the state cookie immediately before navigating.
+// =========================================================================================
 export const startLogin = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
+  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;                                 // Base URL of authentication provider
+  const appId = import.meta.env.VITE_APP_ID;                                                    // Registered application ID
+  const redirectUri = `${window.location.origin}/api/oauth/callback`;                           // Callback endpoint
 
-  const nonce = crypto.randomUUID();
-  document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=None; Secure`;
-  const state = encodeOAuthState({ redirectUri, nonce });
+  const nonce = crypto.randomUUID();                                                            // Cryptographic random nonce
+  document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=None; Secure`; // Set state cookie
+  const state = encodeOAuthState({ redirectUri, nonce });                                       // Encode payload
 
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
+  const url = new URL(`${oauthPortalUrl}/app-auth`);                                            // Target OAuth endpoint
   url.searchParams.set("appId", appId);
   url.searchParams.set("redirectUri", redirectUri);
   url.searchParams.set("state", state);
   url.searchParams.set("type", "signIn");
 
-  window.location.href = url.toString();
+  window.location.href = url.toString();                                                        // Redirect browser
 };
