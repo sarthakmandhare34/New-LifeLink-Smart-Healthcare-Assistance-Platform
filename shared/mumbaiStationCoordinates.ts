@@ -1,13 +1,16 @@
-/**
- * Data-backed Mumbai suburban station coordinates for controlled development-directory markers.
- * Sources: BMC Mumbai Suburban Network 2025 KML (public domain) and OpenStreetMap Nominatim
- * only for the eight owner-supplied stations absent from the BMC KML.
- * These are station reference positions, not patient locations or live tracking data.
- */
-export type MumbaiStationCoordinate = { latitude: number; longitude: number };
+// =========================================================================================
+// MUMBAI SUBURBAN STATION GEOGRAPHIC COORDINATES
+// Verified reference coordinates (Latitude, Longitude) for suburban railway stations across
+// Western, Central, and Harbour corridors. Used by the interactive Leaflet map to position
+// clinic markers accurately along Mumbai's transit network.
+// Sources: BMC Mumbai Suburban Network 2025 KML and OpenStreetMap Nominatim.
+// =========================================================================================
 
-export const MUMBAI_STATION_COORDINATES: Readonly<Record<string, MumbaiStationCoordinate>> = {
-  "Churchgate": {
+export type MumbaiStationCoordinate = { latitude: number; longitude: number };                  // Coordinate pair type
+
+export const MUMBAI_STATION_COORDINATES: Readonly<Record<string, MumbaiStationCoordinate>> = {  // Station lookup dictionary
+  "Churchgate": {                                                                               // Western terminus
+
     "latitude": 18.9352961818815,
     "longitude": 72.8271919878514
   },

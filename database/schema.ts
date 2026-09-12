@@ -1,222 +1,225 @@
 import { foreignKey, int, mysqlEnum, mysqlTable, text, timestamp, unique, varchar } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
+// ============================================================================
+// LIFELINK DATABASE SCHEMA (Drizzle ORM for MySQL)
+// ============================================================================
+
+// --- Table 1: Core Users (Patient, Doctor, Admin) ---
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
-  id: int("id").autoincrement().primaryKey(),
-  /** OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
-  name: text("name"),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "doctor", "admin"]).default("user").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  id: int("id").autoincrement().primaryKey(),                    // Auto-incrementing unique user ID (Primary Key)
+  openId: varchar("openId", { length: 64 }).notNull().unique(),  // Unique session subject key (e.g. "native:...", "synthetic-doctor:...")
+  name: text("name"),                                            // Full legal or preferred name of the user
+  email: varchar("email", { length: 320 }),                      // User's verified email address
+  loginMethod: varchar("loginMethod", { length: 64 }),           // Auth provider used ("native-patient", "google-oauth", "synthetic-clinician")
+  role: mysqlEnum("role", ["user", "doctor", "admin"]).default("user").notNull(), // User access permission tier
+  createdAt: timestamp("createdAt").defaultNow().notNull(),      // Timestamp when user account was registered
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(), // Automatically updates whenever user record changes
+  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),// Timestamp of most recent successful login
 });
 
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;                    // TypeScript type representing a selected user record
+export type InsertUser = typeof users.$inferInsert;              // TypeScript type for inserting a new user record
 
-/**
- * Patient-facing health assessment records. These records are scoped to the
- * signed-in account and only the minimum data used by the assessment flow is kept.
- */
+// --- Table 2: Patient AI Health Assessments ---
+// Stores records of AI symptom evaluations performed by Google Gemini
 export const patientAssessments = mysqlTable("patientAssessments", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique assessment record ID
   userId: int("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  symptoms: text("symptoms").notNull(),
-  age: int("age").notNull(),
-  gender: varchar("gender", { length: 32 }).notNull(),
-  conditions: text("conditions"),
-  duration: varchar("duration", { length: 64 }).notNull(),
-  urgency: mysqlEnum("urgency", ["LOW", "MODERATE", "EMERGENCY", "ERROR"]).notNull(),
-  reason: text("reason").notNull(),
-  specialty: varchar("specialty", { length: 160 }).notNull(),
-  guidance: text("guidance").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),        // Foreign key linking to the patient (deletes if user is deleted)
+  symptoms: text("symptoms").notNull(),                          // Raw symptoms entered by the patient
+  age: int("age").notNull(),                                     // Patient age at time of evaluation
+  gender: varchar("gender", { length: 32 }).notNull(),           // Patient gender ("Man", "Woman", "Other")
+  conditions: text("conditions"),                                // Optional preexisting health conditions (e.g. "Asthma, Diabetes")
+  duration: varchar("duration", { length: 64 }).notNull(),       // How long symptoms have persisted (e.g. "3 days")
+  urgency: mysqlEnum("urgency", ["LOW", "MODERATE", "EMERGENCY", "ERROR"]).notNull(), // Clinical urgency tier assigned by triage
+  reason: text("reason").notNull(),                              // Objective, non-diagnostic reasoning from Gemini AI
+  specialty: varchar("specialty", { length: 160 }).notNull(),    // Recommended in-system specialty (e.g. "Cardiology")
+  guidance: text("guidance").notNull(),                          // Actionable next-step guidance for the patient
+  createdAt: timestamp("createdAt").defaultNow().notNull(),      // Timestamp of assessment creation
 });
 
 export type PatientAssessment = typeof patientAssessments.$inferSelect;
 export type InsertPatientAssessment = typeof patientAssessments.$inferInsert;
 
-/** Native patient credentials are stored separately from framework identities. */
+// --- Table 3: Native Patient Credentials ---
+// Stores hashed passwords for native email/password patient authentication
 export const patientCredentials = mysqlTable("patientCredentials", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique credential row ID
   userId: int("userId")
     .notNull()
     .unique()
-    .references(() => users.id, { onDelete: "cascade" }),
-  email: varchar("email", { length: 320 }).notNull().unique(),
-  passwordHash: varchar("passwordHash", { length: 512 }).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),        // Foreign key: exactly one credential row per patient
+  email: varchar("email", { length: 320 }).notNull().unique(),   // Unique login email address
+  passwordHash: varchar("passwordHash", { length: 512 }).notNull(), // Secure salted SHA-256 password hash (passwords never stored in plain text!)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),      // Timestamp when password was created
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(), // Timestamp when password was last changed
 });
 
-/** Synthetic doctor credentials map one stable controlled directory doctor to one login identity. */
+// --- Table 4: Synthetic Doctor Credentials ---
+// Connects Mumbai specialist doctor directory entries to login credentials
 export const syntheticDoctorCredentials = mysqlTable("syntheticDoctorCredentials", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique doctor credential row ID
   userId: int("userId")
     .notNull()
     .unique()
-    .references(() => users.id, { onDelete: "cascade" }),
-  doctorId: varchar("doctorId", { length: 80 }).notNull().unique(),
-  email: varchar("email", { length: 320 }).notNull().unique(),
-  passwordHash: varchar("passwordHash", { length: 512 }).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),        // Foreign key: links credential to user account
+  doctorId: varchar("doctorId", { length: 80 }).notNull().unique(), // Stable specialist identifier (e.g. "doctor-cardio-1")
+  email: varchar("email", { length: 320 }).notNull().unique(),   // Doctor's official clinical email (e.g. "cardiology@lifelink.com")
+  passwordHash: varchar("passwordHash", { length: 512 }).notNull(), // Salted password hash for clinician sign-in
+  createdAt: timestamp("createdAt").defaultNow().notNull(),      // Record creation timestamp
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(), // Password update timestamp
 });
 
-/** Provider identities are separate from native credentials and are added only after a verified provider callback. */
+// --- Table 5: External Provider OAuth Identities ---
+// Links third-party OAuth providers (like Google) to LifeLink accounts
 export const patientProviderIdentities = mysqlTable("patientProviderIdentities", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique identity record ID
   userId: int("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  provider: mysqlEnum("provider", ["google"]).notNull(),
-  subject: varchar("subject", { length: 255 }).notNull(),
-  email: varchar("email", { length: 320 }).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),        // Foreign key linking to user account
+  provider: mysqlEnum("provider", ["google"]).notNull(),         // Name of the OAuth provider (Google)
+  subject: varchar("subject", { length: 255 }).notNull(),        // Google's unique user ID ("sub" claim from ID token)
+  email: varchar("email", { length: 320 }).notNull(),            // Email verified by Google
+  createdAt: timestamp("createdAt").defaultNow().notNull(),      // Link creation timestamp
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(), // Link update timestamp
 }, (table) => [
-  unique("provider_subject_unique").on(table.provider, table.subject),
+  unique("provider_subject_unique").on(table.provider, table.subject), // Prevents duplicate provider registrations
 ]);
 
-/** Existing Health Passport fields; absent clinical data remains absent rather than fabricated. */
+// --- Table 6: Patient Profiles & Health Passport ---
+// Stores personal health passport data (blood group, allergies, conditions, avatar)
 export const patientProfiles = mysqlTable("patientProfiles", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique profile ID
   userId: int("userId")
     .notNull()
     .unique()
-    .references(() => users.id, { onDelete: "cascade" }),
-  bloodGroup: varchar("bloodGroup", { length: 12 }),
-  phone: varchar("phone", { length: 32 }),
-  /** Managed-storage key for an optional patient-selected profile photo; image bytes never enter the database. */
-  avatarKey: varchar("avatarKey", { length: 512 }),
-  allergiesJson: text("allergiesJson").notNull(),
-  conditionsJson: text("conditionsJson").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),        // Exactly one profile record per patient
+  bloodGroup: varchar("bloodGroup", { length: 12 }),             // Patient blood group (e.g. "O+", "A+", "B-")
+  phone: varchar("phone", { length: 32 }),                       // Contact telephone number
+  avatarKey: varchar("avatarKey", { length: 512 }),              // Filesystem path key for uploaded profile photo
+  allergiesJson: text("allergiesJson").notNull(),                // JSON array of verified allergies (e.g. '["Penicillin", "Peanuts"]')
+  conditionsJson: text("conditionsJson").notNull(),              // JSON array of chronic conditions (e.g. '["Hypertension"]')
+  createdAt: timestamp("createdAt").defaultNow().notNull(),      // Profile creation timestamp
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(), // Profile update timestamp
 });
 
+// --- Table 7: Patient Emergency Contacts ---
+// Stores emergency contacts reachable during urgent medical distress
 export const patientEmergencyContacts = mysqlTable("patientEmergencyContacts", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique contact ID
   userId: int("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  name: varchar("name", { length: 160 }).notNull(),
-  relationship: varchar("relationship", { length: 80 }).notNull(),
-  phone: varchar("phone", { length: 32 }).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),        // Linked patient account
+  name: varchar("name", { length: 160 }).notNull(),              // Name of emergency contact person
+  relationship: varchar("relationship", { length: 80 }).notNull(), // Relationship (e.g. "Spouse", "Parent", "Sibling")
+  phone: varchar("phone", { length: 32 }).notNull(),             // Emergency phone number
+  createdAt: timestamp("createdAt").defaultNow().notNull(),      // Record timestamp
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+// --- Table 8: Patient Medicine Cabinet ---
+// Virtual medicine tracker for scheduled dosages, reminders, and inventory
 export const patientMedicines = mysqlTable("patientMedicines", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique medication entry ID
   userId: int("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  name: varchar("name", { length: 200 }).notNull(),
-  dosage: varchar("dosage", { length: 120 }).notNull(),
-  frequency: varchar("frequency", { length: 120 }).notNull(),
-  schedule: varchar("schedule", { length: 120 }).notNull(),
-  startDate: varchar("startDate", { length: 10 }),
-  endDate: varchar("endDate", { length: 10 }),
-  quantity: int("quantity"),
-  expiry: varchar("expiry", { length: 10 }),
+    .references(() => users.id, { onDelete: "cascade" }),        // Linked patient account
+  name: varchar("name", { length: 200 }).notNull(),              // Medication brand or generic name (e.g. "Metformin")
+  dosage: varchar("dosage", { length: 120 }).notNull(),          // Dosage strength (e.g. "500 mg")
+  frequency: varchar("frequency", { length: 120 }).notNull(),    // Daily frequency (e.g. "Twice daily after meals")
+  schedule: varchar("schedule", { length: 120 }).notNull(),      // Time schedule (e.g. "Morning & Evening")
+  startDate: varchar("startDate", { length: 10 }),               // Regimen start date (YYYY-MM-DD)
+  endDate: varchar("endDate", { length: 10 }),                   // Regimen completion date (YYYY-MM-DD)
+  quantity: int("quantity"),                                     // Number of pills/doses remaining in inventory
+  expiry: varchar("expiry", { length: 10 }),                     // Package expiration date
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
-/** Appointment records remain real while their referenced doctors remain controlled mock directory entries. */
+// --- Table 9: Patient Appointments ---
+// Records medical consultations booked with Mumbai specialist doctors
 export const patientAppointments = mysqlTable("patientAppointments", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique appointment ID
   userId: int("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  doctorId: varchar("doctorId", { length: 80 }).notNull(),
-  /** Patient-provided booking context, visible only to the patient and the assigned synthetic doctor. */
-  reason: text("reason"),
-  scheduledAt: timestamp("scheduledAt").notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),        // Patient booking the consultation
+  doctorId: varchar("doctorId", { length: 80 }).notNull(),       // Doctor ID chosen from mock directory
+  reason: text("reason"),                                        // Patient's chief medical complaint for the visit
+  scheduledAt: timestamp("scheduledAt").notNull(),               // Scheduled appointment date and time
   status: mysqlEnum("status", ["Requested", "Pending", "Confirmed", "Completed", "Cancelled"])
     .default("Requested")
-    .notNull(),
+    .notNull(),                                                  // Current clinical appointment status
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+// --- Table 10: Prescriptions ---
+// Official medical prescriptions written and signed by doctors
 export const patientPrescriptions = mysqlTable("patientPrescriptions", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique prescription ID
   userId: int("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  doctorId: varchar("doctorId", { length: 80 }).notNull(),
-  issuedAt: timestamp("issuedAt").defaultNow().notNull(),
+    .references(() => users.id, { onDelete: "cascade" }),        // Patient for whom prescription was written
+  doctorId: varchar("doctorId", { length: 80 }).notNull(),       // Doctor who authorized the prescription
+  issuedAt: timestamp("issuedAt").defaultNow().notNull(),        // Date prescription was signed and issued
   status: mysqlEnum("status", ["UNSIGNED / CONTROLLED WORKSPACE", "SIGNED — CONTROLLED STATE"])
     .default("UNSIGNED / CONTROLLED WORKSPACE")
-    .notNull(),
-  clinicalNotes: text("clinicalNotes"),
-  integrityReference: varchar("integrityReference", { length: 255 }),
+    .notNull(),                                                  // Signing status of the medical document
+  clinicalNotes: text("clinicalNotes"),                          // Doctor's diagnosis and medical notes
+  integrityReference: varchar("integrityReference", { length: 255 }), // Cryptographic digital signature hash
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+// --- Table 11: Prescription Line Items ---
+// Individual medications prescribed within an overarching prescription document
 export const patientPrescriptionItems = mysqlTable("patientPrescriptionItems", {
-  id: int("id").autoincrement().primaryKey(),
-  prescriptionId: int("prescriptionId").notNull(),
-  name: varchar("name", { length: 200 }).notNull(),
-  dosage: varchar("dosage", { length: 120 }).notNull(),
-  instructions: text("instructions").notNull(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique line-item ID
+  prescriptionId: int("prescriptionId").notNull(),               // Foreign key linking to parent prescription
+  name: varchar("name", { length: 200 }).notNull(),              // Prescribed medicine name
+  dosage: varchar("dosage", { length: 120 }).notNull(),          // Prescribed dosage (e.g. "10mg")
+  instructions: text("instructions").notNull(),                  // Doctor's specific usage instructions
 }, (table) => [
   foreignKey({
     columns: [table.prescriptionId],
     foreignColumns: [patientPrescriptions.id],
     name: "rx_item_prescription_fk",
-  }).onDelete("cascade"),
+  }).onDelete("cascade"),                                        // Automatically deletes items if parent prescription is removed
 ]);
 
-/** Event records are server-created and patient-scoped for authenticated realtime delivery. */
+// --- Table 12: Real-time Patient Events ---
+// Event stream for instant frontend UI updates via Server-Sent Events (SSE)
 export const patientEvents = mysqlTable("patientEvents", {
-  id: int("id").autoincrement().primaryKey(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique event ID
   userId: int("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),        // Target patient receiving notification
   type: mysqlEnum("type", [
     "PROFILE_UPDATED",
     "APPOINTMENT_UPDATED",
     "PRESCRIPTION_CREATED",
     "ASSESSMENT_COMPLETED",
     "MEDICINE_UPDATED",
-  ]).notNull(),
-  entityId: varchar("entityId", { length: 80 }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  ]).notNull(),                                                  // Event category triggering UI refetch
+  entityId: varchar("entityId", { length: 80 }),                 // Affected ID (e.g. appointment ID or prescription ID)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),      // Event timestamp
 });
 
-/**
- * Delivery records for the existing realtime layer when a controlled synthetic
- * doctor needs to refetch an appointment assigned to that doctor. The payload
- * remains notification-only; patient health data is never copied into events.
- */
+// --- Table 13: Real-time Doctor Events ---
+// Real-time events delivered to the doctor's workstation when appointments change
 export const doctorEvents = mysqlTable("doctorEvents", {
-  id: int("id").autoincrement().primaryKey(),
-  doctorId: varchar("doctorId", { length: 80 }).notNull(),
+  id: int("id").autoincrement().primaryKey(),                    // Unique doctor event ID
+  doctorId: varchar("doctorId", { length: 80 }).notNull(),       // Doctor receiving notification
   patientUserId: int("patientUserId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),        // Related patient
   type: mysqlEnum("type", ["APPOINTMENT_UPDATED", "ASSESSMENT_COMPLETED", "PATIENT_RELATED_UPDATE"]).notNull(),
   entityId: varchar("entityId", { length: 80 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+// --- Type Exports for Application Use ---
 export type PatientCredential = typeof patientCredentials.$inferSelect;
 export type SyntheticDoctorCredential = typeof syntheticDoctorCredentials.$inferSelect;
 export type PatientProfile = typeof patientProfiles.$inferSelect;

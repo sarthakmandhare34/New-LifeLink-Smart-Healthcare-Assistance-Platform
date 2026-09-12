@@ -1,26 +1,31 @@
-/**
- * Owner-supplied Mumbai suburban railway reference. Stations are derived as
- * single entities from corridor sequences so interchanges do not become
- * duplicate station records.
- */
-export const MUMBAI_RAIL_LINES = ["Central", "Harbour", "Western"] as const;
-export type MumbaiRailLine = typeof MUMBAI_RAIL_LINES[number];
+// =========================================================================================
+// MUMBAI SUBURBAN RAILWAY TRANSIT NETWORK REFERENCE
+// Models the three primary suburban rail lines (Western, Central, Harbour) and their corridors.
+// Used by the Specialist Finder to map specialist clinics and compute transit access for patients.
+// =========================================================================================
 
+export const MUMBAI_RAIL_LINES = ["Central", "Harbour", "Western"] as const;                     // The three major Mumbai suburban railway networks
+export type MumbaiRailLine = typeof MUMBAI_RAIL_LINES[number];                                   // Rail line union type
+
+// Corridor sequence representation
 export type MumbaiRailCorridor = {
-  id: string;
-  line: MumbaiRailLine;
-  label: string;
-  stations: readonly string[];
+  id: string;                                                                                   // Unique slug identifier
+  line: MumbaiRailLine;                                                                         // Network division
+  label: string;                                                                                // Route label
+  stations: readonly string[];                                                                  // Ordered list of station names
 };
 
+// Station representation with multi-line interchange tracking
 export type MumbaiRailStation = {
-  id: string;
-  name: string;
-  lines: readonly MumbaiRailLine[];
+  id: string;                                                                                   // Station slug
+  name: string;                                                                                 // Official station name
+  lines: readonly MumbaiRailLine[];                                                             // All lines serving this station (e.g. Dadar serves Central & Western)
 };
 
+// Generates a kebab-cased slug from a station name
 const stationId = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+// Complete list of rail corridors spanning Greater Mumbai
 export const MUMBAI_RAIL_CORRIDORS: readonly MumbaiRailCorridor[] = [
   {
     id: "western-churchgate-virar",
@@ -72,25 +77,28 @@ export const MUMBAI_RAIL_CORRIDORS: readonly MumbaiRailCorridor[] = [
   },
 ];
 
+// Deduplicates stations across corridors into distinct station entities with merged lines
 export const MUMBAI_RAIL_STATIONS: readonly MumbaiRailStation[] = (() => {
   const stations = new Map<string, { id: string; name: string; lines: MumbaiRailLine[] }>();
   MUMBAI_RAIL_CORRIDORS.forEach((corridor) => {
     corridor.stations.forEach((name) => {
       const existing = stations.get(name);
       if (existing) {
-        if (!existing.lines.includes(corridor.line)) existing.lines.push(corridor.line);
+        if (!existing.lines.includes(corridor.line)) existing.lines.push(corridor.line);          // Merge line
         return;
       }
-      stations.set(name, { id: stationId(name), name, lines: [corridor.line] });
+      stations.set(name, { id: stationId(name), name, lines: [corridor.line] });                 // Add new station
     });
   });
-  return Array.from(stations.values());
+  return Array.from(stations.values());                                                         // Convert map to array
 })();
 
+// Lookup a station by name
 export function getMumbaiRailStation(name: string) {
   return MUMBAI_RAIL_STATIONS.find((station) => station.name === name) ?? null;
 }
 
+// Lookup corridors for a specific rail line
 export function getMumbaiRailCorridors(line?: MumbaiRailLine) {
   return line ? MUMBAI_RAIL_CORRIDORS.filter((corridor) => corridor.line === line) : MUMBAI_RAIL_CORRIDORS;
 }
