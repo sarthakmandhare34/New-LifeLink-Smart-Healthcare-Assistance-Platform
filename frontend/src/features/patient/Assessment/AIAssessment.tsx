@@ -119,6 +119,18 @@ export const AIAssessment = () => {
 
   const activeModalItem = result || selectedHistoryItem;
 
+  const matchedDoctorQuery = trpc.patientDiscovery.list.useQuery(
+    { specialty: activeModalItem?.specialty },
+    {
+      enabled: Boolean(
+        activeModalItem?.specialty &&
+        activeModalItem.specialty !== 'Emergency Care' &&
+        activeModalItem.specialty !== 'Error'
+      ),
+    }
+  );
+  const matchedDoctor = matchedDoctorQuery.data?.[0];
+
   const cardStyle = {
     background: '#E6F9FC',
     padding: 'clamp(16px, 4vw, 28px)',
@@ -468,6 +480,52 @@ export const AIAssessment = () => {
                   {activeModalItem.specialty}
                 </strong>
               </div>
+
+              {matchedDoctor && activeModalItem.urgency !== 'EMERGENCY' && activeModalItem.urgency !== 'ERROR' && (
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    background: 'rgba(0, 196, 204, 0.08)',
+                    border: '1px solid rgba(0, 196, 204, 0.25)',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
+                >
+                  <div>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#00C4CC', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
+                      In-System Specialist Available
+                    </span>
+                    <strong style={{ fontSize: '0.92rem', color: '#102B2D', display: 'block', marginTop: '2px' }}>
+                      {matchedDoctor.name}
+                    </strong>
+                    <span style={{ fontSize: '0.8rem', color: '#2D9D9C', display: 'block', marginTop: '2px' }}>
+                      📍 Station: {matchedDoctor.station} ({matchedDoctor.railLine} Line)
+                    </span>
+                  </div>
+                  <Button
+                    variant="primary"
+                    style={{
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      padding: '6px 12px',
+                      background: '#00C4CC',
+                      borderColor: '#00C4CC',
+                      color: '#FFF',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                    onClick={() => {
+                      handleCloseResult();
+                      findSpecialist();
+                    }}
+                  >
+                    View & Book
+                  </Button>
+                </div>
+              )}
 
               <div>
                 <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#2D9D9C', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '4px' }}>

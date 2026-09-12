@@ -35,3 +35,25 @@ export const decodeOAuthState = (state: string): OAuthState => {
   }
   return { redirectUri: decoded };
 };
+
+/**
+ * The 12 controlled clinical specialties supported by doctors present in LifeLink's directory.
+ * AI triage and doctor filters are constrained to this closed list.
+ */
+export const SYSTEM_DOCTOR_SPECIALTIES = [
+  "Cardiology",
+  "Dermatology",
+  "Endocrinology",
+  "Gastroenterology",
+  "General Practice",
+  "Gynecology",
+  "Neurology",
+  "Ophthalmology",
+  "Orthopedics",
+  "Pediatrics",
+  "Pulmonology",
+  "Psychiatry",
+] as const;
+
+export type SystemDoctorSpecialty = (typeof SYSTEM_DOCTOR_SPECIALTIES)[number];
+

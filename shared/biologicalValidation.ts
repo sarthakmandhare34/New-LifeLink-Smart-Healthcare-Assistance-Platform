@@ -16,7 +16,7 @@ const FEMALE_EXCLUSIVE_PATTERNS = [
   /\bpcos\b|polycystic(?:\s+ovary)?/i,
   /\bbreastfeeding|lactating\b/i,
   /\bmorning sickness\b/i,
-  /\bgynecolog/i,
+  /\bgynecolog(?:y|ist|ical)\b/i,
 ];
 
 const MALE_EXCLUSIVE_PATTERNS = [
@@ -37,6 +37,10 @@ export function checkBiologicalImpossibility(symptoms: string, gender: string): 
   const text = symptoms.trim();
   
   if (gender.toLowerCase() === 'male' || gender.toLowerCase() === 'man') {
+    // Valid male medical conditions (male breast, hormonal, fertility, or urological)
+    if (/\b(?:gynecomast\w*|male\s+breast\w*|galactorrhea|andropause|hypogonadism|male\s+infertility|prostat\w*|testic\w*|scrot\w*|penis|penile|erectile\s+dysfunction)\b/i.test(text)) {
+      return null;
+    }
     if (FEMALE_EXCLUSIVE_PATTERNS.some(p => p.test(text))) {
       return `The symptoms described contain female-specific biological references which are inconsistent with the selected '${gender}' gender. Please correct your inputs.`;
     }

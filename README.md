@@ -62,34 +62,63 @@ Here's what it does in simple terms:
 
 ---
 
-## 🧠 How the AI Works (Simplified)
+## 🧠 How the AI Works: Smart Triage & Clinical Decision Support
 
-When you type your symptoms, the AI doesn't just ask Google. It goes through **5 safety checks** before giving you an answer:
+> **💡 The Big Picture: AI is a Helpful Guide, Not a Doctor**  
+> LifeLink's AI does **not** give a final medical diagnosis or claim 100% accuracy. Instead, it acts as an **intelligent healthcare navigator** — analyzing the symptoms you type in plain English, helping you understand how urgently you need care, and pointing you to the exact type of doctor you should consult.
 
+### 🔄 How Your Symptoms Get Analyzed (From Input to Result)
+
+```text
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │  1. What You Provide (Patient Input)                                   │
+  │     • Symptoms in plain English ("throbbing headache and blurry vision")│
+  │     • Age & biological profile                                        │
+  │     • Duration ("past 3 days") & any pre-existing health conditions   │
+  └───────────────────────────────────┬────────────────────────────────────┘
+                                      │
+                                      ▼
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │  2. Behind-the-Scenes Analysis & Safety Filtering                      │
+  │     • Instant Emergency Check: Critical red flags (chest pain, severe  │
+  │       breathing trouble) bypass AI to immediately advise "Call 112"   │
+  │     • Biological Sanity Check: Catches biologically impossible inputs │
+  │     • Age-Appropriate Routing: Patients under 18 route to Pediatrics   │
+  │     • Google Gemini AI Analysis: Maps complex symptoms to medical data │
+  └───────────────────────────────────┬────────────────────────────────────┘
+                                      │
+                                      ▼
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │  3. What You Receive (Actionable Guidance)                             │
+  │     • 🚦 Urgency Tier: LOW (routine), MODERATE, or EMERGENCY           │
+  │     • 🩺 Recommended Specialist: e.g. "Neurology" or "Cardiology"      │
+  │     • 👨‍⚕️ In-System Doctor: Matches a verified doctor in our directory  │
+  │     • 💡 Clear Guidance: Plain-English advice & questions for your doc │
+  │     • 🗺️ Direct Next Step: Find & book nearby Mumbai specialists       │
+  └────────────────────────────────────────────────────────────────────────┘
 ```
-You type your symptoms
-        │
-        ▼
-Step 1: Is this biologically possible?
-        (e.g. Can a male be pregnant? → No → Returns a gentle correction)
-        │
-        ▼
-Step 2: Is this an EMERGENCY? (checks for keywords like "chest pain", "can't breathe", "suicidal")
-        → YES: Immediately shows "Call 112" — no AI needed
-        │
-        ▼
-Step 3: Send to Google Gemini AI to analyze
-        (uses multiple Gemini models as backup if one fails)
-        │
-        ▼
-Step 4: Safety check on the AI's answer
-        (Is the patient under 18? → Route to Pediatrics)
-        (Non-health question like "recipe for pasta"? → Reject with ERROR)
-        │
-        ▼
-Step 5: If the internet is down or AI fails → Show a safe default response
-        (Never crashes, never leaves you without guidance)
-```
+
+### ⭐ Key Capabilities of the AI Assistant
+
+1. **Plain-English Symptom Processing & In-System Doctor Matching**  
+   You don't need medical jargon. Typing *"my stomach aches on the right side after eating"* is analyzed by Google Gemini Flash to identify the digestive system and recommend **Gastroenterology**.  
+   *The AI is strictly constrained to recommend ONLY the 12 medical specialties and doctors currently present in LifeLink's directory.* Patients are never directed to arbitrary specialties or dead ends — every recommendation pairs directly with an available doctor in our system.
+
+2. **3-Level Urgency Triage**  
+   Helps patients prioritize their care:
+   - 🟢 **LOW**: Mild symptoms suitable for self-care, rest, and routine general practice check-ups.
+   - 🟡 **MODERATE**: Persistent symptoms that warrant booking an appointment with a specialist within a few days.
+   - 🔴 **EMERGENCY**: Urgent red-flag symptoms requiring immediate medical attention at an emergency room or via `112`.
+
+3. **Built-in Safety Guardrails**  
+   - **System Specialty Boundaries**: The AI prompt and JSON schema enforce a strict enum of the 12 in-system specialties. Unlisted fields (ENT, oncology, nephrology, urology) map safely to `General Practice`.
+   - **Emergency Override**: Critical phrases (e.g. *"crushing chest pain"*, *"loss of consciousness"*, *"slurred speech"*) return an immediate `EMERGENCY` warning with zero delay, advising you to dial `112`.
+   - **Pediatric Protection**: Adolescents and children (under 18) are directed to pediatricians and advised to involve parents/guardians.
+   - **Nonsense Filter**: Irrelevant questions (e.g. *"how to bake a cake"*) are flagged and rejected so the tool remains strictly dedicated to health.
+   - **Offline Fallback**: If internet connection drops or AI quota is exceeded, safe default medical guidance is provided so the app never crashes.
+
+4. **Transparent Role: Guiding, Not Replacing Clinicians**  
+   LifeLink provides decision support to eliminate confusion before you leave your house. The AI is designed to help you **prepare for your visit**, but a real, certified clinician always conducts the physical diagnosis and writes the prescription.
 
 ---
 
