@@ -5,67 +5,70 @@ import { Users, Calendar, Clock, Activity, ArrowRight, Stethoscope } from "lucid
 import { useNavigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 
+// Returns color styling object for triage urgency badge
 function urgencyBadge(urgency: string) {
-  if (urgency === 'EMERGENCY') {
+  if (urgency === 'EMERGENCY') {                                                           // High-risk emergency condition
     return { bg: 'rgba(220, 38, 38, 0.12)', color: 'var(--color-semantic-emergency)', border: '1px solid rgba(220, 38, 38, 0.2)' };
   }
-  if (urgency === 'MODERATE') {
+  if (urgency === 'MODERATE') {                                                            // Moderate clinical attention needed
     return { bg: 'rgba(217, 119, 6, 0.12)', color: 'var(--color-semantic-warning)', border: '1px solid rgba(217, 119, 6, 0.2)' };
   }
-  if (urgency === 'ERROR') {
+  if (urgency === 'ERROR') {                                                               // Non-medical or gibberish query
     return { bg: 'rgba(225, 29, 72, 0.12)', color: '#e11d48', border: '1px solid rgba(225, 29, 72, 0.2)' };
   }
-  return { bg: 'rgba(13, 148, 136, 0.12)', color: 'var(--color-semantic-success)', border: '1px solid rgba(13, 148, 136, 0.2)' };
+  return { bg: 'rgba(13, 148, 136, 0.12)', color: 'var(--color-semantic-success)', border: '1px solid rgba(13, 148, 136, 0.2)' }; // Low urgency
 }
 
+// Returns color styling object for appointment status pill
 function statusBadge(status: string) {
-  if (status === 'Confirmed' || status === 'Completed') {
+  if (status === 'Confirmed' || status === 'Completed') {                                  // Green pill for active/completed visits
     return { bg: 'rgba(13, 148, 136, 0.12)', color: 'var(--color-semantic-success)', border: '1px solid rgba(13, 148, 136, 0.2)' };
   }
-  if (status === 'Cancelled') {
+  if (status === 'Cancelled') {                                                            // Red pill for cancelled consultations
     return { bg: 'rgba(220, 38, 38, 0.12)', color: 'var(--color-semantic-emergency)', border: '1px solid rgba(220, 38, 38, 0.2)' };
   }
-  return { bg: 'rgba(217, 119, 6, 0.12)', color: 'var(--color-semantic-warning)', border: '1px solid rgba(217, 119, 6, 0.2)' };
+  return { bg: 'rgba(217, 119, 6, 0.12)', color: 'var(--color-semantic-warning)', border: '1px solid rgba(217, 119, 6, 0.2)' }; // Amber for pending
 }
 
+// Doctor clinical workstation dashboard displaying real-time queues and metrics
 export const DoctorDashboard = () => {
-  const navigate = useNavigate();
-  const dashboard = trpc.doctorWorkspace.dashboard.useQuery();
-  const session = trpc.doctorAuth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false });
-  const patientsQuery = trpc.doctorWorkspace.patients.useQuery(undefined, { enabled: Boolean(session.data) });
-  const appointmentsQuery = trpc.doctorWorkspace.appointments.list.useQuery(undefined, { enabled: Boolean(session.data) });
+  const navigate = useNavigate();                                                          // Programmatic page navigation hook
+  const dashboard = trpc.doctorWorkspace.dashboard.useQuery();                             // Query aggregated dashboard statistics from backend
+  const session = trpc.doctorAuth.me.useQuery(undefined, { retry: false, refetchOnWindowFocus: false }); // Current clinician identity
+  const patientsQuery = trpc.doctorWorkspace.patients.useQuery(undefined, { enabled: Boolean(session.data) }); // Unique patient roster
+  const appointmentsQuery = trpc.doctorWorkspace.appointments.list.useQuery(undefined, { enabled: Boolean(session.data) }); // Appointment list
 
-  if (dashboard.isLoading) return (
+  if (dashboard.isLoading) return (                                                        // Loading state view
     <div className="dashboard-loading" style={{ padding: '40px', textAlign: 'center' }}>
       <p className="caption" style={{ color: '#2D9D9C', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Loading clinical workspace…</p>
     </div>
   );
-  if (dashboard.isError || !dashboard.data) return (
+  if (dashboard.isError || !dashboard.data) return (                                       // Error state view
     <div style={{ padding: '40px', textAlign: 'center' }}>
       <p role="alert" style={{ color: 'var(--color-semantic-emergency)', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>Unable to load the clinical workspace. Please try again.</p>
     </div>
   );
 
-  const { pendingCount, upcomingCount, patientCount, assessmentCount = 0, recentAssessments = [] } = dashboard.data;
-  const recentPatients = patientsQuery.data ?? [];
+  const { pendingCount, upcomingCount, patientCount, assessmentCount = 0, recentAssessments = [] } = dashboard.data; // Unpack metrics
+  const recentPatients = patientsQuery.data ?? [];                                         // Assigned patient list
 
   // Upcoming appointments: strictly scheduled in the future with active status, ordered nearest first
   const now = Date.now();
   const upcomingAppointments = (appointmentsQuery.data ?? [])
     .filter(
       (a) =>
-        ['Requested', 'Pending', 'Confirmed'].includes(a.status) &&
-        new Date(a.scheduledAt).getTime() >= now
+        ['Requested', 'Pending', 'Confirmed'].includes(a.status) &&                        // Active status check
+        new Date(a.scheduledAt).getTime() >= now                                           // Future timestamp check
     )
-    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()); // Ascending chronological sort
 
   // Recent activity: actual appointments ordered by most recent creation/schedule timestamp
   const recentActivity = (appointmentsQuery.data ?? [])
     .slice()
-    .sort((a, b) => new Date(b.createdAt || b.scheduledAt).getTime() - new Date(a.createdAt || a.scheduledAt).getTime())
-    .slice(0, 5);
+    .sort((a, b) => new Date(b.createdAt || b.scheduledAt).getTime() - new Date(a.createdAt || a.scheduledAt).getTime()) // Descending order
+    .slice(0, 5);                                                                          // Top 5 records
 
-  const displayName = session.data?.displayName
+  const displayName = session.data?.displayName                                            // Format doctor title
     ? `Dr. ${session.data.displayName.replace(/^Dr\.?\s*/i, '')}`
     : 'Doctor';
 

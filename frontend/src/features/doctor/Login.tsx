@@ -8,27 +8,30 @@ import { EntryThemeToggle } from "../../components/EntryThemeToggle";
 import { trpc } from "../../lib/trpc";
 import { Activity, Lock, Mail, Eye, EyeOff, Stethoscope, ShieldCheck, Shield } from 'lucide-react';
 
+// Doctor authentication page component allowing specialists to access their clinical dashboard
 export const DoctorLogin = () => {
-  const navigate = useNavigate();
-  const utils = trpc.useUtils();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const navigate = useNavigate();                                                          // Programmatic page navigation hook
+  const utils = trpc.useUtils();                                                           // tRPC cache utilities
+  const [email, setEmail] = useState("");                                                  // Clinician work email state
+  const [password, setPassword] = useState("");                                            // Clinician password state
+  const [showPassword, setShowPassword] = useState(false);                                 // Password visibility toggle
+  const [error, setError] = useState("");                                                  // Authentication error message
   
+  // tRPC mutation for doctor authentication and session cookie establishment
   const login = trpc.doctorAuth.login.useMutation({
     onSuccess: async (doctor) => {
-      utils.doctorAuth.me.setData(undefined, doctor);
-      await utils.auth.me.invalidate();
-      navigate("/doctor/dashboard", { replace: true });
+      utils.doctorAuth.me.setData(undefined, doctor);                                      // Seed active doctor profile into cache
+      await utils.auth.me.invalidate();                                                    // Invalidate stale user context
+      navigate("/doctor/dashboard", { replace: true });                                    // Navigate to clinician dashboard
     },
-    onError: () => setError("The clinician email or password was not accepted."),
+    onError: () => setError("The clinician email or password was not accepted."),          // Display error message
   });
 
+  // Form submission handler
   const handleLogin = (event: React.FormEvent) => {
-    event.preventDefault();
-    setError("");
-    login.mutate({ email, password });
+    event.preventDefault();                                                                // Prevent browser form reload
+    setError("");                                                                          // Clear previous error message
+    login.mutate({ email, password });                                                     // Dispatch login credentials
   };
 
   return (

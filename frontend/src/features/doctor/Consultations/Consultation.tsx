@@ -1,21 +1,29 @@
-import { useNavigate } from "react-router-dom";
-import { Card } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
-import { CheckCircle2, Clock, Stethoscope, User } from "lucide-react";
-import { trpc } from "../../../lib/trpc";
+import { useNavigate } from "react-router-dom";                                                 // Router navigation hook
+import { Card } from "../../../components/ui/Card";                                             // Visual card container
+import { Button } from "../../../components/ui/Button";                                         // Styled action button
+import { CheckCircle2, Clock, Stethoscope, User } from "lucide-react";                          // Clinical consultation icons
+import { trpc } from "../../../lib/trpc";                                                       // Type-safe client tRPC bridge
 
+// =========================================================================================
+// DOCTOR CONSULTATION WORKSPACE
+// Dedicated clinical interface for reviewing active and upcoming appointments.
+// Gives clinicians one-click direct access to open the patient's full EHR record and write prescriptions.
+// =========================================================================================
 export const Consultation = () => {
-  const navigate = useNavigate();
-  const appointments = trpc.doctorWorkspace.appointments.list.useQuery();
+  const navigate = useNavigate();                                                               // Page navigation controller
+  const appointments = trpc.doctorWorkspace.appointments.list.useQuery();                       // Fetches doctor's appointment list
 
+  // Loading indicator while resolving appointment data
   if (appointments.isLoading) return <p>Loading assigned consultations…</p>;
 
+  // Filter only active appointments requiring clinician action
   const activeConsultations = (appointments.data ?? []).filter(
     (a) => a.status === "Confirmed" || a.status === "Requested" || a.status === "Pending",
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-4)" }}>
+      {/* Workspace Header */}
       <header>
         <h1>Consultation Workspace</h1>
         <p className="caption">
@@ -23,6 +31,7 @@ export const Consultation = () => {
         </p>
       </header>
 
+      {/* Empty consultations view */}
       {activeConsultations.length === 0 ? (
         <Card style={{ textAlign: "center", padding: "var(--spacing-6) var(--spacing-4)" }}>
           <Stethoscope size={40} color="var(--color-primary)" />
@@ -33,23 +42,24 @@ export const Consultation = () => {
           </Button>
         </Card>
       ) : (
+        /* List of active patient consultations */
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-3)" }}>
           {activeConsultations.map((appointment) => (
             <Card
-              key={appointment.id}
+              key={appointment.id}                                                              // Appointment unique ID
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 flexWrap: "wrap",
                 gap: "var(--spacing-3)",
-                borderLeft: appointment.status === "Confirmed" ? "4px solid var(--color-primary)" : "4px solid #f59e0b",
+                borderLeft: appointment.status === "Confirmed" ? "4px solid var(--color-primary)" : "4px solid #f59e0b", // Green/Blue for confirmed, Amber for requested
               }}
             >
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-2)", marginBottom: "4px" }}>
                   <User size={18} color="var(--color-primary)" />
-                  <h3 style={{ margin: 0 }}>{appointment.patient.name}</h3>
+                  <h3 style={{ margin: 0 }}>{appointment.patient.name}</h3>                     {/* Patient name */}
                   <span
                     style={{
                       background: appointment.status === "Confirmed" ? "#eff6ff" : "#fffbeb",
@@ -60,17 +70,18 @@ export const Consultation = () => {
                       fontWeight: 600,
                     }}
                   >
-                    {appointment.status === "Confirmed" ? "Confirmed (Ready)" : "Requested"}
+                    {appointment.status === "Confirmed" ? "Confirmed (Ready)" : "Requested"}     {/* Status tag */}
                   </span>
                 </div>
                 <p className="caption" style={{ margin: "var(--spacing-1) 0" }}>
-                  Scheduled: {new Date(appointment.scheduledAt).toLocaleString()}
+                  Scheduled: {new Date(appointment.scheduledAt).toLocaleString()}               {/* Scheduled timestamp */}
                 </p>
                 <p style={{ margin: "var(--spacing-1) 0", fontSize: 14 }}>
-                  <strong>Reason:</strong> {appointment.reason}
+                  <strong>Reason:</strong> {appointment.reason}                                 {/* Patient's reported chief complaint */}
                 </p>
               </div>
 
+              {/* Action button opening patient record to prescribe */}
               <div style={{ display: "flex", gap: "var(--spacing-2)" }}>
                 <Button variant="primary" onClick={() => navigate(`/doctor/patients/${appointment.patient.id}`)}>
                   Open Clinical Record & Prescribe

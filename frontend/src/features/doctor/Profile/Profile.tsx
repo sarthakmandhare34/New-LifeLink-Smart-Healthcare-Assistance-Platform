@@ -1,45 +1,60 @@
-import { Card } from "../../../components/ui/Card";
-import { ShieldCheck, Stethoscope, MapPin, Building, Mail, User } from "lucide-react";
-import { trpc } from "../../../lib/trpc";
+import { Card } from "../../../components/ui/Card";                                             // Visual glass card container
+import { ShieldCheck, Stethoscope, MapPin, Building, Mail, User } from "lucide-react";           // Medical specialist profile iconography
+import { trpc } from "../../../lib/trpc";                                                       // Type-safe tRPC client bridge
 
+// =========================================================================================
+// CLINICIAN PROFILE VIEW
+// Displays professional credentials and clinic localization details for the authenticated doctor:
+// - Display name and medical specialty
+// - Clinic hospital affiliation, locality, and Mumbai rail line transit connectivity
+// - Controlled directory status and verified workstation assurance badge
+// =========================================================================================
 export const DoctorProfile = () => {
-  const profile = trpc.doctorWorkspace.profile.useQuery();
+  const profile = trpc.doctorWorkspace.profile.useQuery();                                      // Retrieves clinician profile from backend
+  
+  // Loading skeleton state
   if (profile.isLoading) return <div className="dashboard-loading"><p className="caption">Loading clinician profile…</p></div>;
+  // Error boundary state
   if (profile.isError || !profile.data) return <p role="alert">Unable to load the clinician profile. Please try again.</p>;
 
-  const data = profile.data;
+  const data = profile.data;                                                                    // Loaded clinician profile data
 
   return (
     <div className="dashboard-workspace">
+      {/* Profile header banner */}
       <header className="mb-4 flex items-center gap-3" style={{ marginBottom: 'var(--spacing-5)' }}>
         <div style={{ width: 52, height: 52, borderRadius: '14px', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Stethoscope size={26} color="#FFF" />
+          <Stethoscope size={26} color="#FFF" />                                                {/* Clinician stethoscope icon */}
         </div>
         <div>
-          <h1 style={{ margin: 0 }}>Clinician Profile</h1>
+          <h1 style={{ margin: 0 }}>Clinician Profile</h1>                                      {/* Header title */}
           <p className="caption" style={{ margin: '4px 0 0' }}>Your controlled LifeLink directory account</p>
         </div>
       </header>
 
+      {/* Bento grid layout */}
       <section className="bento-grid">
-        {/* Identity Card */}
+        {/* Identity & Credentials Card */}
         <Card variant="glass" className="bento-col-8" style={{ padding: 'clamp(16px, 4vw, 28px)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '28px' }}>
+            {/* Clinician initial monogram avatar */}
             <div style={{
               width: '72px', height: '72px', borderRadius: '50%',
               background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center',
               justifyContent: 'center', color: 'var(--color-primary)', fontSize: '2rem', fontWeight: 700,
               flexShrink: 0
             }}>
-              {data.displayName.charAt(0).toUpperCase()}
+              {data.displayName.charAt(0).toUpperCase()}                                        {/* Avatar initial */}
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.6rem' }}>{data.displayName}</h2>
-              <p className="caption" style={{ margin: '4px 0 0' }}>{data.specialty}</p>
+              <h2 style={{ margin: 0, fontSize: '1.6rem' }}>{data.displayName}</h2>             {/* Full clinical name */}
+              <p className="caption" style={{ margin: '4px 0 0' }}>{data.specialty}</p>        {/* Specialty title */}
             </div>
           </div>
 
+          {/* Clinical metadata badge grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '20px' }}>
+            {/* Specialty tag */}
             <div style={{ padding: '16px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
               <div className="flex items-center gap-2" style={{ marginBottom: '6px' }}>
                 <Stethoscope size={16} color="var(--color-primary)" />
@@ -47,6 +62,7 @@ export const DoctorProfile = () => {
               </div>
               <strong style={{ fontSize: '1.05rem' }}>{data.specialty || 'Not set'}</strong>
             </div>
+            {/* Locality tag */}
             <div style={{ padding: '16px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
               <div className="flex items-center gap-2" style={{ marginBottom: '6px' }}>
                 <MapPin size={16} color="var(--color-primary)" />
@@ -54,6 +70,7 @@ export const DoctorProfile = () => {
               </div>
               <strong style={{ fontSize: '1.05rem' }}>{data.locality || 'Mumbai'}</strong>
             </div>
+            {/* Rail transit connectivity tag */}
             <div style={{ padding: '16px', background: 'rgba(0,0,0,0.03)', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
               <div className="flex items-center gap-2" style={{ marginBottom: '6px' }}>
                 <Building size={16} color="var(--color-primary)" />
@@ -64,7 +81,7 @@ export const DoctorProfile = () => {
           </div>
         </Card>
 
-        {/* Verification Notice */}
+        {/* Directory Verification Notice Card */}
         <Card variant="glass" className="bento-col-4" style={{ padding: 'clamp(16px, 4vw, 28px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div style={{ width: 44, height: 44, borderRadius: '12px', background: '#E6F0FF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>

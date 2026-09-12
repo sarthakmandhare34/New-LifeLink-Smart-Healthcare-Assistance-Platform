@@ -1,37 +1,45 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card } from "../../components/ui/Card";
-import { Button } from "../../components/ui/Button";
-import { Input } from "../../components/ui/Input";
-import { LifeLinkLogo } from "../../components/brand/LifeLinkLogo";
-import { EntryThemeToggle } from "../../components/EntryThemeToggle";
-import { trpc } from "../../lib/trpc";
-import { Activity, Key, Mail, Lock, ShieldCheck, Shield } from 'lucide-react';
+import { useState } from "react";                                                             // React state hook for form input tracking
+import { useNavigate } from "react-router-dom";                                                 // Navigation hook to redirect between views
+import { Card } from "../../components/ui/Card";                                                // UI glass container component
+import { Button } from "../../components/ui/Button";                                            // Styled interactive button component
+import { Input } from "../../components/ui/Input";                                              // Styled form text input component
+import { LifeLinkLogo } from "../../components/brand/LifeLinkLogo";                            // Official platform SVG brand logo
+import { EntryThemeToggle } from "../../components/EntryThemeToggle";                          // Light/dark theme toggle component
+import { trpc } from "../../lib/trpc";                                                          // Type-safe tRPC client bridge
+import { Activity, Key, Mail, Lock, ShieldCheck, Shield } from 'lucide-react';                  // Medical security and credential icons
 
+// =========================================================================================
+// DOCTOR PASSWORD RESET WORKFLOW
+// Allows medical clinicians to reset their workstation passwords using the secure owner
+// provisioning code established during server deployment. Prevents unauthorized password resets.
+// =========================================================================================
 export const DoctorResetPassword = () => {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [provisioningCode, setProvisioningCode] = useState("");
-  const [message, setMessage] = useState("");
+  const navigate = useNavigate();                                                               // Router navigation hook
+  const [email, setEmail] = useState("");                                                       // Doctor email input state
+  const [password, setPassword] = useState("");                                                 // Desired new password input state
+  const [provisioningCode, setProvisioningCode] = useState("");                                 // Secret owner provisioning passcode
+  const [message, setMessage] = useState("");                                                   // Status feedback message banner
 
+  // tRPC mutation invoking backend doctor credential update
   const reset = trpc.doctorAuth.resetPassword.useMutation({
     onSuccess: () => {
-      setMessage("Password changed successfully. Sign in using the new doctor password.");
-      setPassword("");
-      setProvisioningCode("");
+      setMessage("Password changed successfully. Sign in using the new doctor password.");       // Success banner feedback
+      setPassword("");                                                                          // Clear password field for security
+      setProvisioningCode("");                                                                  // Clear secret code field
     },
-    onError: (error) => setMessage(error.message),
+    onError: (error) => setMessage(error.message),                                              // Display error message from server
   });
 
+  // Handle form submission
   const submit = (event: React.FormEvent) => {
-    event.preventDefault();
-    setMessage("");
-    reset.mutate({ email, password, provisioningCode });
+    event.preventDefault();                                                                     // Prevent native page refresh
+    setMessage("");                                                                             // Clear prior feedback
+    reset.mutate({ email, password, provisioningCode });                                        // Trigger password reset mutation
   };
 
   return (
     <main className="auth-page" aria-labelledby="doctor-reset-heading" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+      {/* Top navigation portal header */}
       <header className="workspace-portal-header" aria-label="LifeLink portal header">
         <div className="workspace-portal-brand">
           <span className="workspace-portal-mark" aria-hidden="true">
@@ -46,9 +54,10 @@ export const DoctorResetPassword = () => {
           <ShieldCheck size={16} aria-hidden="true" />
           <span>Controlled clinician recovery</span>
         </div>
-        <EntryThemeToggle />
+        <EntryThemeToggle />                                                                    {/* Theme toggle control */}
       </header>
 
+      {/* Split layout: Branding panel + Form card */}
       <div className="doctor-setup-layout auth-split-layout" style={{ flex: 1, display: 'flex', width: '100%', position: 'relative', zIndex: 1 }}>
         {/* Ambient background ECG wave decoration */}
         <div style={{ position: 'absolute', bottom: '2%', left: '4%', opacity: 0.15, pointerEvents: 'none', color: '#00C4CC' }}>
@@ -78,13 +87,16 @@ export const DoctorResetPassword = () => {
               <p style={{ color: '#2D9D9C', fontSize: '0.92rem', margin: 0 }}>Use your owner provisioning code to set a new password</p>
             </header>
 
+            {/* Status message */}
             {message && (
               <div className="alert-panel auth-message" role="status" style={{ marginBottom: '20px', textAlign: 'center' }}>
                 {message}
               </div>
             )}
 
+            {/* Form */}
             <form onSubmit={submit} className="auth-form" style={{ display: 'grid', gap: '16px' }}>
+              {/* Doctor email */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label htmlFor="reset-email" style={{ fontWeight: 600, fontSize: '0.88rem', color: '#102B2D' }}>Clinician Email</label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -101,6 +113,7 @@ export const DoctorResetPassword = () => {
                 </div>
               </div>
 
+              {/* New Password */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label htmlFor="reset-password" style={{ fontWeight: 600, fontSize: '0.88rem', color: '#102B2D' }}>New Password</label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -118,6 +131,7 @@ export const DoctorResetPassword = () => {
                 </div>
               </div>
 
+              {/* Owner Provisioning Code */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label htmlFor="reset-provisioning-code" style={{ fontWeight: 600, fontSize: '0.88rem', color: '#102B2D' }}>Owner Provisioning Code</label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -134,6 +148,7 @@ export const DoctorResetPassword = () => {
                 </div>
               </div>
 
+              {/* Submit button */}
               <Button
                 type="submit"
                 variant="primary"
@@ -144,6 +159,7 @@ export const DoctorResetPassword = () => {
               </Button>
             </form>
 
+            {/* Back to sign in */}
             <div style={{ textAlign: 'center', marginTop: '22px', fontSize: '0.88rem' }}>
               <span style={{ color: '#2D9D9C' }}>Remembered the password? </span>
               <button
@@ -155,7 +171,7 @@ export const DoctorResetPassword = () => {
               </button>
             </div>
 
-            {/* 3 Trust Badges */}
+            {/* Trust and security badges */}
             <footer style={{ display: 'flex', justifyContent: 'space-between', marginTop: '28px', paddingTop: '18px', borderTop: '1px solid #9FFBFF' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#2D9D9C' }}>
                 <ShieldCheck size={20} color="#00C4CC" />

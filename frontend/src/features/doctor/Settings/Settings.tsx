@@ -1,47 +1,59 @@
-import { useState } from "react";
-import { Card } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
-import { Input } from "../../../components/ui/Input";
-import { Settings, Lock, CheckCircle2, AlertCircle } from "lucide-react";
-import { trpc } from "../../../lib/trpc";
+import { useState } from "react";                                                             // React hook for input form tracking
+import { Card } from "../../../components/ui/Card";                                             // Visual card component
+import { Button } from "../../../components/ui/Button";                                         // Styled interaction button
+import { Input } from "../../../components/ui/Input";                                           // Styled input field
+import { Settings, Lock, CheckCircle2, AlertCircle } from "lucide-react";                       // Workspace and security icons
+import { trpc } from "../../../lib/trpc";                                                       // Type-safe client tRPC bridge
 
+// =========================================================================================
+// DOCTOR WORKSPACE SETTINGS
+// Provides security controls for clinicians:
+// - Password modification requiring verification of current password
+// - Account authorization levels and clinical boundary declarations
+// =========================================================================================
 export const DoctorSettings = () => {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");                                   // Current password input state
+  const [newPassword, setNewPassword] = useState("");                                           // New password input state
+  const [message, setMessage] = useState("");                                                   // Feedback message string
+  const [isSuccess, setIsSuccess] = useState(false);                                            // Success/failure indicator flag
+
+  // tRPC mutation to change password
   const changePassword = trpc.doctorAuth.changePassword.useMutation({
     onSuccess: () => {
-      setMessage("Password changed successfully.");
+      setMessage("Password changed successfully.");                                             // Success banner
       setIsSuccess(true);
-      setCurrentPassword("");
+      setCurrentPassword("");                                                                   // Clear inputs
       setNewPassword("");
     },
     onError: (error) => {
-      setMessage(error.message);
+      setMessage(error.message);                                                                // Error message
       setIsSuccess(false);
     },
   });
 
+  // Submit handler
   const submit = (event: React.FormEvent) => {
-    event.preventDefault();
+    event.preventDefault();                                                                     // Prevent page reload
     setMessage("");
-    changePassword.mutate({ currentPassword, newPassword });
+    changePassword.mutate({ currentPassword, newPassword });                                    // Trigger mutation
   };
 
   return (
     <div className="dashboard-workspace">
+      {/* Settings Header */}
       <header className="flex items-center gap-3" style={{ marginBottom: 'var(--spacing-5)' }}>
         <div style={{ width: 52, height: 52, borderRadius: '14px', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Settings size={26} color="#FFF" />
+          <Settings size={26} color="#FFF" />                                                   {/* Settings cog icon */}
         </div>
         <div>
-          <h1 style={{ margin: 0 }}>Workspace Settings</h1>
+          <h1 style={{ margin: 0 }}>Workspace Settings</h1>                                     {/* Header title */}
           <p className="caption" style={{ margin: '4px 0 0' }}>Security controls for your clinician account</p>
         </div>
       </header>
 
+      {/* Bento grid layout */}
       <section className="bento-grid">
+        {/* Change Password Card */}
         <Card variant="glass" className="bento-col-6" style={{ padding: '28px' }}>
           <div className="flex items-center gap-2" style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid var(--color-border)' }}>
             <Lock size={18} color="var(--color-primary)" />
@@ -51,6 +63,7 @@ export const DoctorSettings = () => {
             Update this clinician account's password. The owner-controlled reset path is available from Doctor sign in if your current password is unavailable.
           </p>
 
+          {/* Feedback banner */}
           {message && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px',
@@ -64,6 +77,7 @@ export const DoctorSettings = () => {
             </div>
           )}
 
+          {/* Password update form */}
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
             <label className="auth-field" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <span style={{ fontWeight: 600, fontSize: '14px' }}>Current password</span>
@@ -95,6 +109,7 @@ export const DoctorSettings = () => {
           </form>
         </Card>
 
+        {/* Account Information Card */}
         <Card variant="glass" className="bento-col-6" style={{ padding: '28px' }}>
           <h2 style={{ margin: '0 0 20px', fontSize: 'var(--text-h2)' }}>Account Information</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
